@@ -273,14 +273,12 @@ def _render_metric_ribbon(
         "pendingApprovals",
         sum(_has_pending_approval(item) for item in incidents) if connected else None,
     )
-    time_saved = metrics.get("simulatedTimeSavedPercent")
 
-    columns = st.columns(4, gap="small")
+    columns = st.columns(3, gap="small")
     values = [
         ("Total incidents", _display_number(total), "Simulation cases"),
         ("Resolved", _display_number(resolved), "Recovery verified"),
         ("Pending approval", _display_number(pending), "Human decisions"),
-        ("Time saved", _percent(time_saved), "Simulated baseline"),
     ]
     for column, (label, value, help_text) in zip(columns, values, strict=True):
         column.metric(label, value, help=help_text)
@@ -292,7 +290,7 @@ def _render_scenarios(
     connected: bool,
 ) -> None:
     st.markdown(
-        '<div class="ops-section-heading"><div><h2>Scenario lab</h2>'
+        '<div class="ops-section-heading"><div><h2>Scenarios</h2>'
         "<p>Launch a deterministic failure state and observe how the copilot responds.</p>"
         "</div></div>",
         unsafe_allow_html=True,
@@ -320,7 +318,7 @@ def _render_scenarios(
                 f'<div class="scenario-icon">{html.escape(icon)}</div>'
                 f'<div class="scenario-title">{html.escape(title)}</div>'
                 f'<div class="scenario-detail">{html.escape(description)}</div>'
-                f'<div style="margin:.55rem 0">{_badge(decision, "info")}</div>',
+                f'<div class="scenario-decision">{_badge(decision, "info")}</div>',
                 unsafe_allow_html=True,
             )
             if st.button(
@@ -477,8 +475,8 @@ def _render_incident_detail(
     )
 
     _render_diagnosis(incident)
-    evidence_tab, actions_tab, audit_tab = st.tabs(
-        ["Evidence", "Actions & approvals", "Audit timeline"]
+    evidence_tab, actions_tab, history_tab = st.tabs(
+        ["Evidence", "Actions & approvals", "Track history"]
     )
     with evidence_tab:
         _render_evidence(
@@ -486,8 +484,14 @@ def _render_incident_detail(
         )
     with actions_tab:
         _render_actions(client, incident, operator, role)
-    with audit_tab:
-        _render_timeline(incident.get("timeline") or [])
+    with history_tab:
+        _render_history(
+            client,
+            incident_id,
+            incident.get("timeline") or [],
+            operator,
+            role,
+        )
 
 
 def _render_diagnosis(incident: dict[str, Any]) -> None:
@@ -563,6 +567,10 @@ def _render_actions(
 ) -> None:
     actions = incident.get("actions") or []
     approvals = incident.get("approvals") or []
+    st.caption(
+        "The copilot proposes a specific action. A human must approve the exact "
+        "tool and arguments before any infrastructure change can run."
+    )
     if not actions:
         _render_empty_state(
             "No action proposed",
@@ -676,6 +684,59 @@ def _render_decision_controls(
     )
 
 
+def _render_history(
+    client: IncidentCopilotClient,
+    incident_id: str,
+    timeline: list[dict[str, Any]],
+    operator: str,
+    role: str,
+) -> None:
+    st.markdown("#### Operator log")
+    st.caption(
+        "Add a timestamped operational update. Entries are attributed and become "
+        "part of the append-only incident history."
+    )
+    role_authorized = role in {"incident_commander", "platform_engineer"}
+    if not operator:
+        st.warning(
+            "Enter an operator identity in the sidebar before logging an update."
+        )
+    if not role_authorized:
+        st.info("The active role is read-only and cannot add history entries.")
+
+    with st.form(f"history_log_{incident_id}", clear_on_submit=True):
+        message = st.text_area(
+            "Log an update",
+            placeholder="Example: Payment error rate is stable after rollback.",
+            height=90,
+            max_chars=2000,
+        )
+        submitted = st.form_submit_button(
+            "Add to history",
+            type="primary",
+            disabled=not operator or not role_authorized,
+            use_container_width=True,
+        )
+
+    if submitted:
+        normalized = message.strip()
+        if not normalized:
+            st.warning("Write an update before adding it to the incident history.")
+        else:
+            _call_and_refresh(
+                lambda: client.add_note(
+                    incident_id,
+                    operator=operator,
+                    role=role,
+                    message=normalized,
+                ),
+                "Update added to incident history.",
+            )
+
+    st.markdown("#### Incident history")
+    _render_timeline(timeline)
+
+
 def _render_timeline(timeline: list[dict[str, Any]]) -> None:
     if not timeline:
         _render_empty_state(
@@ -690,12 +751,18 @@ def _render_timeline(timeline: list[dict[str, Any]]) -> None:
         event_type = _pretty(event.get("eventType") or "event")
         message = str(event.get("message") or event_type)
         actor = str(event.get("actor") or "system")
+        details = event.get("details") or {}
+        raw_role = details.get("role") if isinstance(details, dict) else None
+        role = _pretty(raw_role) if raw_role else ""
         created = _format_time(event.get("createdAt"))
+        actor_copy = f"Actor · {html.escape(actor)}"
+        if role:
+            actor_copy += f" · Role · {html.escape(role)}"
         items.append(
             '<div class="timeline-item">'
             f'<div class="timeline-time">{html.escape(created)} · {html.escape(event_type.upper())}</div>'
             f'<div class="timeline-message">{html.escape(message)}</div>'
-            f'<div class="timeline-actor">Actor · {html.escape(actor)}</div>'
+            f'<div class="timeline-actor">{actor_copy}</div>'
             "</div>"
         )
     st.markdown(
@@ -736,7 +803,7 @@ def _render_portfolio_metrics(
     except (TypeError, ValueError, ZeroDivisionError):
         pass
 
-    columns = st.columns(4, gap="small")
+    columns = st.columns(3, gap="small")
     values = [
         (
             "Verified resolution rate",
@@ -752,11 +819,6 @@ def _render_portfolio_metrics(
             "Median recommendation",
             _seconds(metrics.get("medianRecommendationSeconds")),
             "Alert to proposed action",
-        ),
-        (
-            "Simulated time saved",
-            _percent(metrics.get("simulatedTimeSavedPercent")),
-            "Against the manual investigation baseline",
         ),
     ]
     for column, (label, value, help_text) in zip(columns, values, strict=True):

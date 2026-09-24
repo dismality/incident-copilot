@@ -127,6 +127,12 @@ CSS = r"""
     }
     .scenario-title { color: #f4f9ff; font-size: .96rem; font-weight: 720; min-height: 2.5rem; }
     .scenario-detail { color: var(--ops-muted); font-size: .78rem; min-height: 3.7rem; line-height: 1.45; }
+    .scenario-decision { min-height: 2.65rem; margin: .55rem 0; display: flex; align-items: center; }
+    .scenario-decision .ops-badge {
+        box-sizing: border-box; justify-content: center; line-height: 1.25;
+        max-width: 100%; width: 100%; min-height: 2.15rem; padding-inline: .45rem;
+        overflow-wrap: anywhere; text-align: center; white-space: normal;
+    }
 
     .incident-title { color: #f6faff; font-weight: 720; font-size: 1.25rem; margin: .3rem 0; }
     .incident-id { color: var(--ops-cyan); font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: .78rem; }

@@ -20,13 +20,13 @@ verification, and auditability.
 
 > **Safety scope:** Incident Copilot operates only against the included Java simulator.
 > It is not connected to production infrastructure and does not claim production
-> reliability or savings.
+> reliability or operational outcomes.
 
 ## Product walkthrough
 
-| Scenario lab | Human approval gate | Verified audit trail |
+| Scenarios | Human approval gate | Track history |
 | --- | --- | --- |
-| [![Five deterministic incident scenarios](docs/screenshots/01-scenario-lab.png)](docs/screenshots/01-scenario-lab.png) | [![Approval bound to the exact action arguments](docs/screenshots/02-approval-gate.png)](docs/screenshots/02-approval-gate.png) | [![Recovery verification and end-to-end audit timeline](docs/screenshots/03-verified-audit-trail.png)](docs/screenshots/03-verified-audit-trail.png) |
+| [![Five deterministic incident scenarios](docs/screenshots/01-scenarios.png)](docs/screenshots/01-scenarios.png) | [![Approval bound to the exact action arguments](docs/screenshots/02-approval-gate.png)](docs/screenshots/02-approval-gate.png) | [![Attributed operator notes and system events in Track history](docs/screenshots/03-verified-audit-trail.png)](docs/screenshots/03-verified-audit-trail.png) |
 
 The interface makes the safety boundary visible: evidence and confidence are
 reviewable, every mutation pauses for an authorized operator, and a successful
@@ -44,7 +44,8 @@ LLM response and a trustworthy enterprise workflow:
 - approvals bound to exact action arguments;
 - idempotent execution instead of accidental duplicate changes;
 - post-action health checks instead of equating HTTP 200 with recovery; and
-- an append-only business timeline for review and evaluation.
+- append-only Track history containing system events and attributed operator
+  notes for review and evaluation.
 
 ## End-to-end workflow
 
@@ -92,7 +93,7 @@ to act.
 | Idempotency key | A network retry cannot repeat a rollback, scale, restart, or cleanup |
 | Bounded transient retries | Recovers from short 502/503/504 or network failures without retrying invalid requests |
 | Explicit recovery criteria | A successful API call is separated from a successfully resolved incident |
-| PostgreSQL audit model | Evidence, approvals, execution, and verification remain reviewable after the agent run |
+| PostgreSQL audit model | Evidence, approvals, execution, verification, and attributed operator notes remain reviewable after the agent run |
 | No arbitrary shell tool | Eliminates an unnecessarily broad and difficult-to-govern capability |
 | Redis omitted from v1 | The first release has no workload that requires a distributed queue or lock; it belongs in a later async-worker phase |
 
@@ -178,7 +179,8 @@ the model loop.
 5. Enter an operator identity and approve as `incident_commander`.
 6. Observe the Java simulator change from version `2.8.1` to `2.8.0`.
 7. Run verification and confirm error rate and latency meet the runbook threshold.
-8. Review the audit timeline from alert to verified recovery.
+8. Add an attributed operator note and review Track history from alert to
+   verified recovery.
 
 The full three-minute narration is in [`docs/demo-script.md`](docs/demo-script.md).
 
@@ -205,6 +207,8 @@ Important controls:
 - The Java service replays the original result for duplicate idempotency keys.
 - Verification uses fixed thresholds rather than model confidence.
 - Every transition is recorded separately from provider traces.
+- Operator notes are size-limited, escaped, attributed, and treated as
+  untrusted text; they never grant authorization.
 
 See [`docs/threat-model.md`](docs/threat-model.md) for risks, controls, and
 residual limitations.
@@ -220,6 +224,7 @@ POST /api/v1/scenarios/{scenarioKey}/launch
 GET  /api/v1/incidents
 GET  /api/v1/incidents/{incidentId}
 POST /api/v1/incidents/{incidentId}/investigate
+POST /api/v1/incidents/{incidentId}/notes
 POST /api/v1/actions/{actionId}/approve
 POST /api/v1/actions/{actionId}/reject
 POST /api/v1/incidents/{incidentId}/verify
@@ -253,25 +258,21 @@ The evaluation plan adds scenario correctness, abstention, authorization,
 prompt-injection, idempotency, and recovery-verification cases beyond unit tests:
 [`docs/evaluation-plan.md`](docs/evaluation-plan.md).
 
-## Measuring the business claim honestly
+## Measuring operational performance
 
-The dashboard labels time savings as **simulated**. It compares time-to-
-recommendation with a declared manual baseline for each synthetic scenario. It
-does not present that estimate as observed production savings.
+The dashboard reports observed signals from controlled simulator runs rather
+than projecting production impact. The evaluation suite records:
 
-A defensible experiment would ask operators to solve the same randomized cases
-with and without Incident Copilot, then report:
-
-- median time to a correct recommendation;
 - diagnosis accuracy;
 - unsafe-action proposal rate;
 - approval-policy compliance;
 - unnecessary-action rate;
-- verified recovery rate; and
+- verified recovery rate;
+- recommendation and recovery latency; and
 - cost per investigation.
 
-Only after that experiment should a résumé use language such as “reduced median
-investigation time by 65%.” Until then, the honest description is:
+Each result should include the scenario set, sample size, model and prompt
+version, and measurement method. The honest portfolio description is:
 
 > Built a supervised AI incident-response simulator with approval-bound actions,
 > deterministic safety policy, idempotent Python/Java execution, and measurable

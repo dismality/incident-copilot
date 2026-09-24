@@ -120,7 +120,7 @@ incident state changing to **Resolved**.
 
 ### 2:20–2:44 — Prove what happened
 
-**On screen:** Audit timeline.
+**On screen:** Track history.
 
 **Say:**
 
@@ -129,7 +129,9 @@ incident state changing to **Resolved**.
 > verification. This makes the workflow reviewable rather than asking an
 > operator to trust a confident paragraph.
 
-Scroll just enough to show timestamps and actor types. Do not read every row.
+Add a short operator update such as “Payments owner confirmed recovery,” then
+show its server timestamp, actor, and role beside the system events. Explain
+that notes add context but cannot approve an action. Do not read every row.
 
 ### 2:44–3:00 — Close with scope and engineering signal
 
@@ -190,13 +192,13 @@ integration behavior visible while demonstrating work across both ecosystems.
 
 It maintains incident state, selects tools, gathers evidence, pauses and resumes
 around approval, executes an idempotent action, verifies an outcome, and emits a
-complete audit timeline.
+complete Track history with attributed operator updates.
 
 ### “Where does the claimed business impact come from?”
 
-The repository reports simulator evaluation results only. Any time-saving claim
-must compare manual and assisted runs on the same synthetic cases, with the
-sample size and method disclosed. It is not presented as production ROI.
+The repository reports simulator evaluation results only: diagnosis accuracy,
+policy compliance, recovery verification, latency, and cost per investigation.
+It does not present those controlled measurements as production ROI.
 
 ## Recording notes
 

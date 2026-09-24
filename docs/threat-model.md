@@ -221,6 +221,9 @@ events so that an unauthorized action looks legitimate.
   event type, and sanitized before/after data.
 - Write the action state transition and its audit event in the same database
   transaction when possible.
+- Treat operator notes as untrusted text: trim and size-limit input, escape it
+  before display, record the trusted actor and role separately, and never parse
+  note content as approval or authorization.
 - Maintain a per-incident hash chain (`previous_hash`, `event_hash`) so later
   alteration is detectable.
 - Restrict database roles; the runtime account should not own the audit schema.
@@ -321,6 +324,8 @@ real operational data:
 - [ ] Unknown services, actions, and extra schema fields are rejected.
 - [ ] Provider and database secrets never appear in browser responses or logs.
 - [ ] Every deny, approve, execute, and verify event appears in the audit trail.
+- [ ] Operator notes are append-only, attributed, escaped, size-limited, and
+      cannot change authorization or incident state.
 - [ ] The simulator starts without production credentials and rejects nonlocal
       target URLs.
 - [ ] The UI labels all incidents and outcomes as simulated.

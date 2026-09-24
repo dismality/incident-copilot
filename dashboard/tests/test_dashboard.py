@@ -124,7 +124,6 @@ def smoke_dashboard_renders_connected_incident(monkeypatch) -> None:
                     "pendingApprovals": 1,
                     "approvalRate": 0.0,
                     "medianRecommendationSeconds": 12.4,
-                    "simulatedTimeSavedPercent": 65.0,
                 },
             )
         raise AssertionError(f"Unexpected request: {method} {url}")
@@ -133,7 +132,7 @@ def smoke_dashboard_renders_connected_incident(monkeypatch) -> None:
     dashboard = AppTest.from_file(DASHBOARD_DIR / "app.py", default_timeout=10).run()
 
     assert not dashboard.exception
-    assert len(dashboard.metric) == 9
+    assert len(dashboard.metric) == 7
     assert any(button.key == "investigate_inc-001" for button in dashboard.button)
     assert any(button.key == "approve_act-1" for button in dashboard.button)
 
@@ -160,4 +159,29 @@ def test_approval_payload_is_bound_to_operator_role_and_comment(monkeypatch) -> 
         "operator": "david@example.com",
         "role": "incident_commander",
         "comment": "Evidence supports rollback",
+    }
+
+
+def test_history_note_payload_is_attributed_and_incident_scoped(monkeypatch) -> None:
+    captured: dict[str, Any] = {}
+
+    def fake_request(method: str, url: str, **kwargs: Any) -> httpx.Response:
+        captured.update({"method": method, "url": url, **kwargs})
+        return _response(method, url, INCIDENT, status_code=201)
+
+    monkeypatch.setattr(httpx, "request", fake_request)
+    client = IncidentCopilotClient("http://control-plane:8000")
+    client.add_note(
+        "inc-001",
+        operator="david@example.com",
+        role="incident_commander",
+        message="Rollback verified with the service owner.",
+    )
+
+    assert captured["method"] == "POST"
+    assert captured["url"].endswith("/api/v1/incidents/inc-001/notes")
+    assert captured["json"] == {
+        "operator": "david@example.com",
+        "role": "incident_commander",
+        "message": "Rollback verified with the service owner.",
     }

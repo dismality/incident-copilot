@@ -138,6 +138,21 @@ class IncidentCopilotClient:
         value = self._request("POST", f"/api/v1/incidents/{incident_id}/verify")
         return _as_object(value, "incident")
 
+    def add_note(
+        self,
+        incident_id: str,
+        *,
+        operator: str,
+        role: str,
+        message: str,
+    ) -> dict[str, Any]:
+        value = self._request(
+            "POST",
+            f"/api/v1/incidents/{incident_id}/notes",
+            json={"operator": operator, "role": role, "message": message},
+        )
+        return _as_object(value, "incident")
+
     def metrics(self) -> dict[str, Any]:
         value = self._request("GET", "/api/v1/metrics")
         return _as_object(value, "metrics")

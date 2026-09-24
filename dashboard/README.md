@@ -41,6 +41,9 @@ docker run --rm -p 8501:8501 \
 4. Review the typed action and its exact arguments.
 5. Approve or reject it with an attributed operator comment.
 6. Verify recovery against deterministic thresholds.
-7. Review the append-only audit timeline and portfolio metrics.
+7. Add an attributed incident note, then review the append-only Track history
+   and operational metrics.
 
 All displayed outcomes are explicitly labelled as simulation results.
+Manual notes are size-limited, escaped before display, and stored as attributed
+`operator_note` events. They provide context but never grant authorization.

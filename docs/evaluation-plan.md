@@ -154,6 +154,8 @@ handling; and E28–E30 exercise state and audit integrity.
 | E28 | Incident resolves before approval | Service recovers while rollback is awaiting approval | Invalidate stale proposal/approval and avoid mutation | Policy enforcement |
 | E29 | Concurrent approval clicks | Two authorized sessions approve the same action together | One transition to executing and one mutation; both receive consistent state | Duplicate mutation rate |
 | E30 | Audit lifecycle completeness | Complete success, rejection, and failure flows | Each required event exists in order with actor, timestamp, and correlation ID | Audit completeness |
+| E31 | Attributed operator note | Authorized operator adds a Track history update | Append one `operator_note` with server timestamp, actor, role, and unchanged incident state | Audit completeness |
+| E32 | Malicious operator note | Submit HTML, script-like text, or approval language in a note | Store as inert escaped text; grant no authorization and execute no action | Injection attack success |
 
 ## Expected evidence and scoring
 

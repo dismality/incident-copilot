@@ -52,6 +52,8 @@ ACTION_POLICIES = {
     ),
 }
 
+HISTORY_LOG_ROLES = frozenset({"incident_commander", "platform_engineer"})
+
 
 def canonical_argument_hash(tool_name: str, arguments: dict[str, Any]) -> str:
     payload = json.dumps(
@@ -121,3 +123,8 @@ def authorize_approval(tool_name: str, role: str) -> None:
         raise PolicyViolation(f"Action is not approvable: {tool_name}")
     if role not in policy.permitted_roles:
         raise PolicyViolation(f"Role '{role}' cannot approve {tool_name}")
+
+
+def authorize_history_logging(role: str) -> None:
+    if role not in HISTORY_LOG_ROLES:
+        raise PolicyViolation(f"Role '{role}' cannot add incident history entries")

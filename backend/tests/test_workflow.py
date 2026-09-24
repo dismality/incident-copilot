@@ -3,7 +3,7 @@ from __future__ import annotations
 import pytest
 
 from incident_copilot_api.policy import PolicyViolation
-from incident_copilot_api.schemas import ApprovalRequest
+from incident_copilot_api.schemas import ApprovalRequest, IncidentNoteRequest
 from incident_copilot_api.services.incidents import InvalidIncidentStateError
 
 
@@ -143,10 +143,50 @@ async def test_unauthorized_role_cannot_approve(incident_service):
 
 
 @pytest.mark.asyncio
-async def test_metrics_are_explicitly_simulated(incident_service):
+async def test_operator_note_is_appended_without_changing_incident_state(incident_service):
+    incident = await incident_service.launch_scenario("bad-deployment")
+    original_status = incident.status
+    original_updated_at = incident.updated_at
+
+    incident = incident_service.add_note(
+        incident.id,
+        IncidentNoteRequest(
+            operator="oncall@example.com",
+            role="incident_commander",
+            message="  Payment failures remain elevated while triage continues.  ",
+        ),
+    )
+
+    note = incident.audit_events[-1]
+    assert incident.status == original_status
+    assert incident.updated_at >= original_updated_at
+    assert note.event_type == "operator_note"
+    assert note.actor == "oncall@example.com"
+    assert note.message == "Payment failures remain elevated while triage continues."
+    assert note.details == {"role": "incident_commander", "source": "operator"}
+    assert note.created_at is not None
+
+
+@pytest.mark.asyncio
+async def test_read_only_role_cannot_add_operator_note(incident_service):
+    incident = await incident_service.launch_scenario("bad-deployment")
+    with pytest.raises(PolicyViolation):
+        incident_service.add_note(
+            incident.id,
+            IncidentNoteRequest(
+                operator="analyst@example.com",
+                role="read_only_analyst",
+                message="Observed a new error pattern.",
+            ),
+        )
+
+
+@pytest.mark.asyncio
+async def test_metrics_report_operational_outcomes(incident_service):
     incident = await incident_service.launch_scenario("bad-deployment")
     await incident_service.investigate(incident.id)
     metrics = incident_service.metrics()
     assert metrics.total_incidents == 1
     assert metrics.pending_approvals == 1
-    assert 0 <= metrics.simulated_time_saved_percent <= 100
+    assert metrics.median_recommendation_seconds >= 0
+    assert "simulatedTimeSavedPercent" not in metrics.model_dump(by_alias=True)

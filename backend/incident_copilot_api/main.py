@@ -15,6 +15,7 @@ from .schemas import (
     ApprovalRequest,
     HealthResponse,
     IncidentDetail,
+    IncidentNoteRequest,
     IncidentSummary,
     MetricsResponse,
 )
@@ -42,7 +43,7 @@ app = FastAPI(
     version="0.1.0",
     description=(
         "A supervised AI incident-response control plane with deterministic policy, "
-        "approval-bound remediation, verification, and an append-only audit timeline."
+        "approval-bound remediation, verification, and append-only Track history."
     ),
     lifespan=lifespan,
 )
@@ -172,6 +173,23 @@ async def verify(
 ) -> IncidentDetail:
     try:
         return incident_detail(await app_service.verify(incident_id))
+    except Exception as exc:
+        raise translate_error(exc) from exc
+
+
+@app.post(
+    "/api/v1/incidents/{incident_id}/notes",
+    response_model=IncidentDetail,
+    status_code=status.HTTP_201_CREATED,
+    tags=["incidents"],
+)
+def add_incident_note(
+    incident_id: str,
+    payload: IncidentNoteRequest,
+    app_service: IncidentService = Depends(service),
+) -> IncidentDetail:
+    try:
+        return incident_detail(app_service.add_note(incident_id, payload))
     except Exception as exc:
         raise translate_error(exc) from exc
 

@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Any, Literal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 
 class CamelModel(BaseModel):
@@ -140,13 +140,26 @@ class ApprovalRequest(CamelModel):
     comment: str | None = Field(default=None, max_length=1000)
 
 
+class IncidentNoteRequest(CamelModel):
+    operator: str = Field(min_length=2, max_length=160)
+    role: str = Field(min_length=2, max_length=80)
+    message: str = Field(min_length=1, max_length=2000)
+
+    @field_validator("operator", "role", "message")
+    @classmethod
+    def strip_required_text(cls, value: str) -> str:
+        normalized = value.strip()
+        if not normalized:
+            raise ValueError("must not be blank")
+        return normalized
+
+
 class MetricsResponse(CamelModel):
     total_incidents: int
     resolved_incidents: int
     pending_approvals: int
     approval_rate: float
     median_recommendation_seconds: float
-    simulated_time_saved_percent: float
 
 
 class HealthResponse(CamelModel):

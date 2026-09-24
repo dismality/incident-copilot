@@ -15,11 +15,18 @@ from ..db_models import Action, Approval, Evidence, Incident
 from ..policy import (
     PolicyViolation,
     authorize_approval,
+    authorize_history_logging,
     canonical_argument_hash,
     evaluate_proposal,
 )
 from ..runbooks import load_runbook
-from ..schemas import Alert, ApprovalRequest, InvestigationDecision, MetricsResponse
+from ..schemas import (
+    Alert,
+    ApprovalRequest,
+    IncidentNoteRequest,
+    InvestigationDecision,
+    MetricsResponse,
+)
 from ..simulator import SimulatorClient
 
 
@@ -29,15 +36,6 @@ class IncidentNotFoundError(LookupError):
 
 class InvalidIncidentStateError(RuntimeError):
     pass
-
-
-BASELINE_MINUTES = {
-    "bad-deployment": 24,
-    "traffic-surge": 18,
-    "disk-pressure": 16,
-    "provider-outage": 14,
-    "ambiguous-login": 30,
-}
 
 
 class IncidentService:
@@ -70,7 +68,6 @@ class IncidentService:
             status="new",
             alert_summary=alert.summary,
             alert_data=alert.model_dump(mode="json", by_alias=True),
-            baseline_minutes=BASELINE_MINUTES.get(scenario_key, 20),
         )
         self.db.add(incident)
         self.db.flush()
@@ -384,6 +381,21 @@ class IncidentService:
         self.db.commit()
         return self.get_incident(incident.id)
 
+    def add_note(self, incident_id: str, request: IncidentNoteRequest) -> Incident:
+        incident = self.get_incident(incident_id)
+        authorize_history_logging(request.role)
+        record_event(
+            self.db,
+            incident_id=incident.id,
+            event_type="operator_note",
+            actor=request.operator,
+            message=request.message,
+            details={"role": request.role, "source": "operator"},
+        )
+        incident.updated_at = datetime.now(UTC)
+        self.db.commit()
+        return self.get_incident(incident.id)
+
     @staticmethod
     def _verification_result(scenario_key: str, health: dict[str, Any]) -> tuple[bool, str]:
         status = str(health.get("status", "unknown")).lower()
@@ -432,15 +444,12 @@ class IncidentService:
         approval_rate = approved / len(decisions) if decisions else 0.0
 
         recommendation_seconds: list[float] = []
-        simulated_saved: list[float] = []
         for item in incidents:
             if item.investigation_started_at and item.recommendation_ready_at:
                 start = self._as_utc(item.investigation_started_at)
                 end = self._as_utc(item.recommendation_ready_at)
                 seconds = max((end - start).total_seconds(), 0)
                 recommendation_seconds.append(seconds)
-                baseline_seconds = item.baseline_minutes * 60
-                simulated_saved.append(max(0.0, 1 - seconds / baseline_seconds))
 
         return MetricsResponse(
             total_incidents=total,
@@ -449,9 +458,6 @@ class IncidentService:
             approval_rate=round(approval_rate, 3),
             median_recommendation_seconds=round(statistics.median(recommendation_seconds), 2)
             if recommendation_seconds
-            else 0.0,
-            simulated_time_saved_percent=round(statistics.mean(simulated_saved) * 100, 1)
-            if simulated_saved
             else 0.0,
         )
 

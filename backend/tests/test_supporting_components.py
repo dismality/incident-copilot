@@ -1,12 +1,13 @@
 from __future__ import annotations
 
 import pytest
+from pydantic import ValidationError
 
 from incident_copilot_api.agents.demo import DemoInvestigator
 from incident_copilot_api.agents.factory import build_investigator
 from incident_copilot_api.policy import PolicyViolation, evaluate_proposal
 from incident_copilot_api.runbooks import RunbookNotFoundError, load_runbook
-from incident_copilot_api.schemas import ProposedAction
+from incident_copilot_api.schemas import IncidentNoteRequest, ProposedAction
 from incident_copilot_api.serializers import incident_detail, incident_summary
 
 
@@ -67,6 +68,16 @@ def test_invalid_cleanup_retention_is_rejected():
             make_proposal("cleanup_exports", {"olderThanDays": 60}),
             service="reporting-worker",
             environment="production",
+        )
+
+
+@pytest.mark.parametrize("message", ["", "   ", "\n\t"])
+def test_incident_note_rejects_blank_messages(message):
+    with pytest.raises(ValidationError):
+        IncidentNoteRequest(
+            operator="oncall@example.com",
+            role="incident_commander",
+            message=message,
         )
 
 

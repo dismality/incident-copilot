@@ -65,13 +65,31 @@ the original result without repeating the mutation.
 - `GET /api/v1/incidents`
 - `GET /api/v1/incidents/{incidentId}`
 - `POST /api/v1/incidents/{incidentId}/investigate`
+- `POST /api/v1/incidents/{incidentId}/notes`
 - `POST /api/v1/actions/{actionId}/approve`
 - `POST /api/v1/actions/{actionId}/reject`
 - `POST /api/v1/incidents/{incidentId}/verify`
 - `GET /api/v1/metrics`
 
 The incident detail response embeds its evidence, pending/completed actions,
-approvals, and audit timeline so the dashboard needs only one detail request.
+approvals, and Track history so the dashboard needs only one detail request.
+
+### `POST /api/v1/incidents/{incidentId}/notes`
+
+Appends an operator note to the incident's Track history:
+
+```json
+{
+  "operator": "david@example.com",
+  "role": "incident_commander",
+  "message": "Rollback verified; checkout error rate is below the runbook threshold."
+}
+```
+
+The control plane trims and size-limits the message, rejects blank input, and
+persists an append-only `operator_note` event with attribution and a server
+timestamp. Note text is untrusted and must be escaped before display. Neither a
+note nor a role written inside it grants approval or changes authorization.
 
 ## Supported scenarios and expected decisions
 

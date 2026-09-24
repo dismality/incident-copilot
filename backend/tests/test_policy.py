@@ -5,6 +5,7 @@ import pytest
 from incident_copilot_api.policy import (
     PolicyViolation,
     authorize_approval,
+    authorize_history_logging,
     canonical_argument_hash,
     evaluate_proposal,
 )
@@ -58,6 +59,11 @@ def test_rollback_target_must_be_a_safe_version_identifier(target):
 def test_viewer_cannot_approve_production_change():
     with pytest.raises(PolicyViolation):
         authorize_approval("rollback_deployment", "viewer")
+
+
+def test_read_only_role_cannot_write_incident_history():
+    with pytest.raises(PolicyViolation):
+        authorize_history_logging("read_only_analyst")
 
 
 def test_argument_hash_binds_tool_and_exact_arguments():
