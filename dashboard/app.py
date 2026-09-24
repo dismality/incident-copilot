@@ -17,6 +17,7 @@ from datetime import UTC, datetime
 from typing import Any, TypeVar
 
 import streamlit as st
+
 from api_client import ControlPlaneError, ResolveOpsClient
 from styles import inject_styles
 
@@ -734,7 +735,7 @@ def _attempt(call: Callable[[], T]) -> tuple[T | None, ControlPlaneError | None]
         return call(), None
     except ControlPlaneError as exc:
         return None, exc
-    except Exception as exc:  # Keep the operator surface recoverable on malformed data.
+    except Exception as exc:  # noqa: BLE001 - keep the UI recoverable on malformed data.
         return None, ControlPlaneError(
             "The dashboard could not process the control-plane response.",
             endpoint="dashboard",

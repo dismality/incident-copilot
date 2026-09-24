@@ -9,7 +9,7 @@ import httpx
 DASHBOARD_DIR = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(DASHBOARD_DIR))
 
-from api_client import ResolveOpsClient  # noqa: E402
+from api_client import ResolveOpsClient
 
 INCIDENT = {
     "id": "inc-001",
