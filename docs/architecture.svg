@@ -1,0 +1,221 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1050" viewBox="0 0 1600 1050" role="img" aria-labelledby="title description">
+  <title id="title">ResolveOps supervised incident-response architecture</title>
+  <desc id="description">Architecture diagram showing a Streamlit dashboard, Python control plane, OpenAI reasoning boundary, Java infrastructure simulator, PostgreSQL audit store, approval gate, remediation executor, and deterministic verification.</desc>
+  <defs>
+    <linearGradient id="background" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#071321"/>
+      <stop offset="1" stop-color="#0d1d32"/>
+    </linearGradient>
+    <linearGradient id="header" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#54d3ff"/>
+      <stop offset="1" stop-color="#8b7dff"/>
+    </linearGradient>
+    <pattern id="grid" width="32" height="32" patternUnits="userSpaceOnUse">
+      <path d="M 32 0 L 0 0 0 32" fill="none" stroke="#23405d" stroke-width="1" opacity="0.25"/>
+    </pattern>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#02070d" flood-opacity="0.45"/>
+    </filter>
+    <marker id="arrowBlue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#54d3ff"/>
+    </marker>
+    <marker id="arrowPurple" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#a99aff"/>
+    </marker>
+    <marker id="arrowAmber" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#ffba69"/>
+    </marker>
+    <marker id="arrowGreen" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#63e6be"/>
+    </marker>
+    <style>
+      .title { font: 700 42px Inter, Segoe UI, sans-serif; fill: #f5f9ff; }
+      .subtitle { font: 400 18px Inter, Segoe UI, sans-serif; fill: #9fb5ca; }
+      .lane-title { font: 700 19px Inter, Segoe UI, sans-serif; fill: #eaf4ff; letter-spacing: .4px; }
+      .lane-subtitle { font: 400 13px Inter, Segoe UI, sans-serif; fill: #8fa9c0; }
+      .box-title { font: 700 16px Inter, Segoe UI, sans-serif; fill: #f2f8ff; }
+      .box-copy { font: 400 13px Inter, Segoe UI, sans-serif; fill: #aec0d1; }
+      .small { font: 600 12px Inter, Segoe UI, sans-serif; fill: #d5e6f5; }
+      .tiny { font: 400 11px Inter, Segoe UI, sans-serif; fill: #91a9be; }
+      .step { font: 800 12px Inter, Segoe UI, sans-serif; fill: #071321; }
+      .pill { font: 700 12px Inter, Segoe UI, sans-serif; letter-spacing: .5px; }
+      .flow { fill: none; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+    </style>
+  </defs>
+
+  <rect width="1600" height="1050" fill="url(#background)"/>
+  <rect width="1600" height="1050" fill="url(#grid)"/>
+  <rect x="0" y="0" width="1600" height="7" fill="url(#header)"/>
+
+  <text x="70" y="72" class="title">ResolveOps</text>
+  <text x="70" y="105" class="subtitle">Supervised AI incident response · evidence first · exact-action approval · deterministic verification</text>
+  <rect x="1328" y="48" width="202" height="42" rx="21" fill="#132f43" stroke="#54d3ff" stroke-width="1.5"/>
+  <circle cx="1352" cy="69" r="7" fill="#63e6be"/>
+  <text x="1370" y="74" class="pill" fill="#bdefff">SIMULATED SYSTEMS</text>
+
+  <!-- Lane containers -->
+  <g filter="url(#shadow)">
+    <rect x="55" y="145" width="310" height="735" rx="20" fill="#0d1a2a" stroke="#284764" stroke-width="1.5"/>
+    <rect x="390" y="145" width="710" height="735" rx="20" fill="#0d1a2a" stroke="#2d5676" stroke-width="1.5"/>
+    <rect x="1125" y="145" width="420" height="735" rx="20" fill="#0d1a2a" stroke="#4a4771" stroke-width="1.5"/>
+  </g>
+
+  <text x="82" y="184" class="lane-title">Operator experience</text>
+  <text x="82" y="207" class="lane-subtitle">Streamlit dashboard · human decision point</text>
+  <text x="417" y="184" class="lane-title">Python control plane</text>
+  <text x="417" y="207" class="lane-subtitle">FastAPI · Pydantic contracts · policy-owned execution</text>
+  <text x="1152" y="184" class="lane-title">Reasoning + infrastructure</text>
+  <text x="1152" y="207" class="lane-subtitle">Untrusted judgment separated from side effects</text>
+
+  <!-- Operator lane -->
+  <rect x="82" y="238" width="256" height="105" rx="14" fill="#13273a" stroke="#3f6988"/>
+  <circle cx="108" cy="265" r="14" fill="#54d3ff"/><text x="104" y="270" class="step">1</text>
+  <text x="132" y="268" class="box-title">Incident queue</text>
+  <text x="102" y="298" class="box-copy">Launch a scenario or receive an alert</text>
+  <text x="102" y="321" class="box-copy">See severity, service, state, and age</text>
+
+  <rect x="82" y="387" width="256" height="160" rx="14" fill="#13273a" stroke="#ffba69" stroke-width="1.5"/>
+  <circle cx="108" cy="414" r="14" fill="#ffba69"/><text x="104" y="419" class="step">5</text>
+  <text x="132" y="417" class="box-title">Approval gate</text>
+  <text x="102" y="448" class="box-copy">Exact action + arguments</text>
+  <text x="102" y="471" class="box-copy">Evidence, risk, expected impact</text>
+  <text x="102" y="494" class="box-copy">Authorized approve / reject decision</text>
+  <rect x="102" y="512" width="94" height="24" rx="12" fill="#173c32"/><text x="122" y="528" class="small" fill="#63e6be">APPROVE</text>
+  <rect x="204" y="512" width="84" height="24" rx="12" fill="#42232a"/><text x="225" y="528" class="small" fill="#ff9a9a">REJECT</text>
+
+  <rect x="82" y="591" width="256" height="150" rx="14" fill="#13273a" stroke="#3f6988"/>
+  <circle cx="108" cy="618" r="14" fill="#63e6be"/><text x="104" y="623" class="step">8</text>
+  <text x="132" y="621" class="box-title">Incident timeline</text>
+  <line x1="110" y1="650" x2="110" y2="713" stroke="#42647e" stroke-width="2"/>
+  <circle cx="110" cy="654" r="5" fill="#54d3ff"/><text x="126" y="659" class="box-copy">Evidence collected</text>
+  <circle cx="110" cy="684" r="5" fill="#ffba69"/><text x="126" y="689" class="box-copy">Action approved</text>
+  <circle cx="110" cy="711" r="5" fill="#63e6be"/><text x="126" y="716" class="box-copy">Recovery verified</text>
+
+  <rect x="82" y="785" width="256" height="62" rx="14" fill="#101f30" stroke="#29475f"/>
+  <text x="102" y="811" class="small">Portfolio boundary</text>
+  <text x="102" y="831" class="tiny">No connection to real production systems</text>
+
+  <!-- Python lane -->
+  <rect x="420" y="238" width="650" height="88" rx="14" fill="#12283a" stroke="#54d3ff"/>
+  <circle cx="449" cy="266" r="14" fill="#54d3ff"/><text x="445" y="271" class="step">2</text>
+  <text x="474" y="269" class="box-title">FastAPI workflow API</text>
+  <text x="443" y="300" class="box-copy">Validates alert → creates incident → exposes dashboard-safe incident view</text>
+
+  <rect x="420" y="365" width="305" height="145" rx="14" fill="#14233b" stroke="#8b7dff"/>
+  <circle cx="449" cy="393" r="14" fill="#a99aff"/><text x="445" y="398" class="step">3</text>
+  <text x="474" y="396" class="box-title">Investigation agent</text>
+  <text x="443" y="428" class="box-copy">Selects read-only tools</text>
+  <text x="443" y="451" class="box-copy">Separates facts from hypotheses</text>
+  <text x="443" y="474" class="box-copy">Returns a typed proposed action</text>
+  <rect x="443" y="486" width="138" height="17" rx="8" fill="#282754"/><text x="455" y="498" class="tiny">NO MUTATION ACCESS</text>
+
+  <rect x="765" y="365" width="305" height="145" rx="14" fill="#2c2319" stroke="#ffba69"/>
+  <circle cx="794" cy="393" r="14" fill="#ffba69"/><text x="790" y="398" class="step">4</text>
+  <text x="819" y="396" class="box-title">Deterministic policy engine</text>
+  <text x="788" y="428" class="box-copy">Allowlist + role + environment</text>
+  <text x="788" y="451" class="box-copy">Argument bounds + risk rules</text>
+  <text x="788" y="474" class="box-copy">Binds approval to exact payload hash</text>
+  <rect x="788" y="486" width="160" height="17" rx="8" fill="#50371c"/><text x="800" y="498" class="tiny">CODE OWNS AUTHORITY</text>
+
+  <rect x="420" y="552" width="305" height="122" rx="14" fill="#2b241b" stroke="#ffba69"/>
+  <circle cx="449" cy="580" r="14" fill="#ffba69"/><text x="445" y="585" class="step">6</text>
+  <text x="474" y="583" class="box-title">Remediation executor</text>
+  <text x="443" y="615" class="box-copy">Revalidates approval and arguments</text>
+  <text x="443" y="638" class="box-copy">Uses idempotency key for one mutation</text>
+  <text x="443" y="657" class="tiny">Rollback · scale · restart · cleanup</text>
+
+  <rect x="765" y="552" width="305" height="122" rx="14" fill="#173029" stroke="#63e6be"/>
+  <circle cx="794" cy="580" r="14" fill="#63e6be"/><text x="790" y="585" class="step">7</text>
+  <text x="819" y="583" class="box-title">Recovery verifier</text>
+  <text x="788" y="615" class="box-copy">Re-reads service health</text>
+  <text x="788" y="638" class="box-copy">Applies runbook-owned thresholds</text>
+  <text x="788" y="657" class="tiny">Recovered · unresolved · inconclusive</text>
+
+  <rect x="420" y="718" width="650" height="129" rx="14" fill="#101f30" stroke="#3f6988"/>
+  <text x="447" y="750" class="box-title">PostgreSQL system of record</text>
+  <text x="447" y="780" class="box-copy">Incidents · evidence · action proposals · approval identity and time</text>
+  <text x="447" y="804" class="box-copy">Execution results · verification status · append-only audit events · trace IDs</text>
+  <rect x="889" y="740" width="151" height="30" rx="15" fill="#183247"/>
+  <text x="910" y="760" class="small">DURABLE STATE</text>
+  <rect x="889" y="782" width="151" height="30" rx="15" fill="#183247"/>
+  <text x="907" y="802" class="small">AUDIT EVIDENCE</text>
+
+  <!-- Reasoning + simulator lane -->
+  <rect x="1155" y="238" width="360" height="142" rx="14" fill="#1d1e3b" stroke="#a99aff" stroke-width="1.5"/>
+  <text x="1180" y="269" class="box-title">OpenAI model</text>
+  <text x="1180" y="300" class="box-copy">Interprets evidence and plans investigation</text>
+  <text x="1180" y="323" class="box-copy">Produces structured, schema-validated output</text>
+  <line x1="1180" y1="343" x2="1490" y2="343" stroke="#444676"/>
+  <text x="1180" y="365" class="tiny">Reasoning provider; never the authorization boundary</text>
+
+  <rect x="1155" y="424" width="360" height="326" rx="14" fill="#122838" stroke="#54d3ff" stroke-width="1.5"/>
+  <text x="1180" y="456" class="box-title">Java infrastructure simulator</text>
+  <text x="1180" y="479" class="box-copy">Isolated, resettable state for safe demonstrations</text>
+
+  <rect x="1180" y="506" width="310" height="84" rx="11" fill="#153246" stroke="#3e7191"/>
+  <text x="1202" y="532" class="small">READ-ONLY EVIDENCE APIs</text>
+  <text x="1202" y="557" class="box-copy">Health · logs · deployments · dependencies</text>
+  <text x="1202" y="577" class="tiny">Logs are data, never instructions</text>
+
+  <rect x="1180" y="614" width="310" height="84" rx="11" fill="#36291c" stroke="#ffba69"/>
+  <text x="1202" y="640" class="small">ALLOWLISTED MUTATION APIs</text>
+  <text x="1202" y="665" class="box-copy">Rollback · scale · restart · cleanup</text>
+  <text x="1202" y="685" class="tiny">Duplicate keys return the first result</text>
+
+  <rect x="1180" y="713" width="310" height="24" rx="12" fill="#173c32"/>
+  <text x="1261" y="729" class="small" fill="#63e6be">SCENARIO STATE</text>
+
+  <rect x="1155" y="786" width="360" height="61" rx="14" fill="#101f30" stroke="#4b5d70"/>
+  <text x="1180" y="812" class="small">Supported scenario outcomes</text>
+  <text x="1180" y="833" class="tiny">Resolve · monitor only · gather more evidence · escalate</text>
+
+  <!-- Flows -->
+  <path d="M338 290 C375 290 384 282 420 282" class="flow" stroke="#54d3ff" marker-end="url(#arrowBlue)"/>
+  <text x="349" y="273" class="tiny">alert</text>
+
+  <path d="M570 326 L570 365" class="flow" stroke="#a99aff" marker-end="url(#arrowPurple)"/>
+  <path d="M725 432 L765 432" class="flow" stroke="#ffba69" marker-end="url(#arrowAmber)"/>
+  <text x="727" y="420" class="tiny">proposal</text>
+
+  <path d="M765 470 C700 532 395 468 338 468" class="flow" stroke="#ffba69" marker-end="url(#arrowAmber)"/>
+  <text x="530" y="512" class="tiny">pending exact-action approval</text>
+
+  <path d="M338 500 C392 526 384 610 420 610" class="flow" stroke="#ffba69" marker-end="url(#arrowAmber)"/>
+  <text x="348" y="575" class="tiny">decision</text>
+
+  <path d="M725 613 L765 613" class="flow" stroke="#63e6be" marker-end="url(#arrowGreen)"/>
+  <text x="728" y="601" class="tiny">result</text>
+
+  <path d="M917 674 L917 718" class="flow" stroke="#63e6be" marker-end="url(#arrowGreen)"/>
+  <path d="M570 674 L570 718" class="flow" stroke="#54d3ff" marker-end="url(#arrowBlue)"/>
+
+  <path d="M725 405 C900 330 1014 306 1155 306" class="flow" stroke="#a99aff" marker-end="url(#arrowPurple)"/>
+  <path d="M1155 336 C1010 354 900 385 725 456" class="flow" stroke="#a99aff" marker-end="url(#arrowPurple)"/>
+  <text x="935" y="327" class="tiny">model request / structured response</text>
+
+  <path d="M725 390 C900 390 1010 548 1180 548" class="flow" stroke="#54d3ff" marker-end="url(#arrowBlue)"/>
+  <text x="950" y="467" class="tiny">read-only tool calls</text>
+
+  <path d="M725 640 C880 700 1018 656 1180 656" class="flow" stroke="#ffba69" marker-end="url(#arrowAmber)"/>
+  <text x="959" y="681" class="tiny">approved mutation</text>
+
+  <path d="M1180 583 C1084 583 1080 596 1070 610" class="flow" stroke="#63e6be" marker-end="url(#arrowGreen)"/>
+  <text x="1081" y="572" class="tiny">health</text>
+
+  <path d="M420 812 C377 812 370 677 338 677" class="flow" stroke="#54d3ff" marker-end="url(#arrowBlue)"/>
+  <text x="348" y="765" class="tiny">timeline</text>
+
+  <!-- Footer legend -->
+  <rect x="55" y="917" width="1490" height="83" rx="18" fill="#0b1827" stroke="#29445d"/>
+  <text x="82" y="948" class="small">TRUST LEGEND</text>
+  <line x1="218" y1="944" x2="263" y2="944" class="flow" stroke="#54d3ff" marker-end="url(#arrowBlue)"/>
+  <text x="278" y="949" class="box-copy">evidence / state</text>
+  <line x1="437" y1="944" x2="482" y2="944" class="flow" stroke="#a99aff" marker-end="url(#arrowPurple)"/>
+  <text x="497" y="949" class="box-copy">model reasoning</text>
+  <line x1="667" y1="944" x2="712" y2="944" class="flow" stroke="#ffba69" marker-end="url(#arrowAmber)"/>
+  <text x="727" y="949" class="box-copy">approval / mutation</text>
+  <line x1="926" y1="944" x2="971" y2="944" class="flow" stroke="#63e6be" marker-end="url(#arrowGreen)"/>
+  <text x="986" y="949" class="box-copy">verification / recovery</text>
+  <text x="82" y="979" class="tiny">Security invariant: model output is a proposal. Only deterministic policy plus a valid, bound approval can authorize a side effect.</text>
+  <text x="1468" y="979" class="tiny" text-anchor="end">Architecture v1 · portfolio simulator</text>
+</svg>

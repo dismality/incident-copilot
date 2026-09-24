@@ -1,0 +1,60 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: resolveops
+      POSTGRES_USER: resolveops
+      POSTGRES_PASSWORD: resolveops
+    ports:
+      - "5432:5432"
+    volumes:
+      - resolveops-postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U resolveops -d resolveops"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  simulator:
+    build:
+      context: ./simulator-java
+    ports:
+      - "8081:8081"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8081/actuator/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 15
+
+  api:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      DATABASE_URL: postgresql+psycopg://resolveops:resolveops@postgres:5432/resolveops
+      SIMULATOR_BASE_URL: http://simulator:8081
+      RUNBOOK_DIRECTORY: /runbooks
+      DASHBOARD_ORIGIN: http://localhost:8501
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      simulator:
+        condition: service_healthy
+
+  dashboard:
+    build:
+      context: ./dashboard
+    environment:
+      RESOLVEOPS_API_URL: http://api:8000
+    ports:
+      - "8501:8501"
+    depends_on:
+      - api
+
+volumes:
+  resolveops-postgres:

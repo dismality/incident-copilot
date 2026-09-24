@@ -1,0 +1,20 @@
+server:
+  port: 8081
+  shutdown: graceful
+
+spring:
+  application:
+    name: resolveops-infrastructure-simulator
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: never
+
+resolveops:
+  cors:
+    allowed-origins: http://localhost:8000,http://127.0.0.1:8000,http://localhost:8501,http://127.0.0.1:8501
