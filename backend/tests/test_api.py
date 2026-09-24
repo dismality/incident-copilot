@@ -5,8 +5,8 @@ from collections.abc import Generator
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
-from resolveops_api.agents.demo import DemoInvestigator
-from resolveops_api.database import get_db
+from incident_copilot_api.agents.demo import DemoInvestigator
+from incident_copilot_api.database import get_db
 
 
 def test_http_workflow_exposes_typed_incident_and_metrics(
@@ -15,7 +15,7 @@ def test_http_workflow_exposes_typed_incident_and_metrics(
     app_settings,
     monkeypatch,
 ) -> None:
-    from resolveops_api import main as api
+    from incident_copilot_api import main as api
 
     def override_db() -> Generator[Session, None, None]:
         yield db_session

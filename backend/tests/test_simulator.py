@@ -3,7 +3,7 @@ from __future__ import annotations
 import httpx
 import pytest
 
-from resolveops_api.simulator import SimulatorClient, SimulatorError
+from incident_copilot_api.simulator import SimulatorClient, SimulatorError
 
 
 @pytest.mark.asyncio

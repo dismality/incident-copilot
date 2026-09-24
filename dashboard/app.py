@@ -1,4 +1,4 @@
-"""ResolveOps operator dashboard.
+"""Incident Copilot operator dashboard.
 
 Run locally with:
     streamlit run app.py
@@ -18,12 +18,12 @@ from typing import Any, TypeVar
 
 import streamlit as st
 
-from api_client import ControlPlaneError, ResolveOpsClient
+from api_client import ControlPlaneError, IncidentCopilotClient
 from styles import inject_styles
 
 T = TypeVar("T")
 
-DEFAULT_API_URL = os.getenv("RESOLVEOPS_API_URL", "http://localhost:8000")
+DEFAULT_API_URL = os.getenv("INCIDENT_COPILOT_API_URL", "http://localhost:8000")
 
 SCENARIO_CATALOGUE: list[dict[str, str]] = [
     {
@@ -72,7 +72,7 @@ ROLE_OPTIONS = {
 
 def main() -> None:
     st.set_page_config(
-        page_title="ResolveOps | Incident Command",
+        page_title="Incident Copilot | Incident Command",
         page_icon="⚡",
         layout="wide",
         initial_sidebar_state="expanded",
@@ -81,7 +81,7 @@ def main() -> None:
     _initialize_state()
 
     api_url, operator, role = _sidebar()
-    client = ResolveOpsClient(api_url)
+    client = IncidentCopilotClient(api_url)
 
     _render_header()
     _render_flash()
@@ -165,9 +165,12 @@ def _initialize_state() -> None:
 def _sidebar() -> tuple[str, str, str]:
     with st.sidebar:
         st.markdown(
-            '<div class="ops-wordmark">RESOLVE<span>//</span>OPS</div>', unsafe_allow_html=True
+            '<div class="ops-wordmark">INCIDENT<span>//</span>COPILOT</div>',
+            unsafe_allow_html=True,
         )
-        st.markdown('<div class="ops-kicker">Operator console</div>', unsafe_allow_html=True)
+        st.markdown(
+            '<div class="ops-kicker">Operator console</div>', unsafe_allow_html=True
+        )
         st.caption("A supervised AI workspace for simulated infrastructure incidents.")
 
         st.markdown("### Session")
@@ -211,9 +214,13 @@ def _render_header() -> None:
     left, right = st.columns([0.79, 0.21], vertical_alignment="bottom")
     with left:
         st.markdown(
-            '<div class="ops-kicker">AI incident response copilot</div>', unsafe_allow_html=True
+            '<div class="ops-kicker">AI incident response copilot</div>',
+            unsafe_allow_html=True,
         )
-        st.markdown('<div class="ops-title">Clarity under pressure.</div>', unsafe_allow_html=True)
+        st.markdown(
+            '<div class="ops-title">Clarity under pressure.</div>',
+            unsafe_allow_html=True,
+        )
         st.markdown(
             '<div class="ops-subtitle">Evidence-led investigation, policy-controlled execution '
             "and deterministic recovery verification—designed for humans to remain in command.</div>",
@@ -235,7 +242,9 @@ def _render_connection_strip(
     error: ControlPlaneError | None,
 ) -> None:
     if connected:
-        health_status = str((health or {}).get("status", "operational")).replace("_", " ")
+        health_status = str((health or {}).get("status", "operational")).replace(
+            "_", " "
+        )
         st.markdown(
             f'<div style="margin:1.15rem 0 .25rem">{_badge("Control plane " + health_status, "success", dot=True)} '
             f"{_badge('Supervised execution', 'info')} {_badge('Simulation', 'purple')}</div>",
@@ -256,7 +265,9 @@ def _render_metric_ribbon(
     total = metrics.get("totalIncidents", len(incidents) if connected else None)
     resolved = metrics.get(
         "resolvedIncidents",
-        sum(_norm(item.get("status")) == "resolved" for item in incidents) if connected else None,
+        sum(_norm(item.get("status")) == "resolved" for item in incidents)
+        if connected
+        else None,
     )
     pending = metrics.get(
         "pendingApprovals",
@@ -276,7 +287,7 @@ def _render_metric_ribbon(
 
 
 def _render_scenarios(
-    client: ResolveOpsClient,
+    client: IncidentCopilotClient,
     scenarios: list[dict[str, Any]],
     connected: bool,
 ) -> None:
@@ -289,7 +300,9 @@ def _render_scenarios(
 
     if not scenarios:
         _render_empty_state(
-            "No scenarios available", "The simulator did not return a scenario catalogue.", "□"
+            "No scenarios available",
+            "The simulator did not return a scenario catalogue.",
+            "□",
         )
         return
 
@@ -297,7 +310,9 @@ def _render_scenarios(
     for index, scenario in enumerate(scenarios):
         key = str(scenario.get("scenarioKey") or scenario.get("key") or "")
         title = str(scenario.get("title") or key.replace("-", " ").title())
-        description = str(scenario.get("description") or "Controlled incident simulation.")
+        description = str(
+            scenario.get("description") or "Controlled incident simulation."
+        )
         icon = str(scenario.get("icon") or "◇")
         decision = str(scenario.get("decision") or "Evidence-led decision")
         with columns[index % len(columns)], st.container(border=True):
@@ -317,7 +332,7 @@ def _render_scenarios(
                 _launch(client, key, title)
 
 
-def _launch(client: ResolveOpsClient, scenario_key: str, title: str) -> None:
+def _launch(client: IncidentCopilotClient, scenario_key: str, title: str) -> None:
     with st.spinner(f"Activating {title}…"):
         incident, error = _attempt(lambda: client.launch_scenario(scenario_key))
     if error:
@@ -341,7 +356,9 @@ def _render_incident_queue(
         _render_error_state("Queue unavailable", _error_copy(error), "!")
         return
 
-    statuses = sorted({_pretty(item.get("status")) for item in incidents if item.get("status")})
+    statuses = sorted(
+        {_pretty(item.get("status")) for item in incidents if item.get("status")}
+    )
     status_filter = st.selectbox(
         "Filter incidents",
         ["All states", *statuses],
@@ -350,7 +367,9 @@ def _render_incident_queue(
     )
     visible = incidents
     if status_filter != "All states":
-        visible = [item for item in incidents if _pretty(item.get("status")) == status_filter]
+        visible = [
+            item for item in incidents if _pretty(item.get("status")) == status_filter
+        ]
 
     if not visible:
         _render_empty_state(
@@ -365,7 +384,9 @@ def _render_incident_queue(
         incident_id = _incident_id(incident)
         status = str(incident.get("status", "open"))
         severity = str(incident.get("severity", "unknown"))
-        title = str(incident.get("title") or incident.get("alertSummary") or "Untitled incident")
+        title = str(
+            incident.get("title") or incident.get("alertSummary") or "Untitled incident"
+        )
         service = str(incident.get("service") or "Unknown service")
         created = _format_time(incident.get("createdAt"), compact=True)
         with st.container(border=True):
@@ -378,7 +399,9 @@ def _render_incident_queue(
                 f'<div style="margin-top:.55rem">{_badge(_pretty(status), _status_tone(status), dot=True)}</div>',
                 unsafe_allow_html=True,
             )
-            button_label = "Viewing incident" if incident_id == selected else "Open incident"
+            button_label = (
+                "Viewing incident" if incident_id == selected else "Open incident"
+            )
             if st.button(
                 button_label,
                 key=f"select_{incident_id}",
@@ -390,13 +413,15 @@ def _render_incident_queue(
 
 
 def _render_incident_detail(
-    client: ResolveOpsClient,
+    client: IncidentCopilotClient,
     incident: dict[str, Any],
     operator: str,
     role: str,
 ) -> None:
     incident_id = _incident_id(incident)
-    title = str(incident.get("title") or incident.get("alertSummary") or "Untitled incident")
+    title = str(
+        incident.get("title") or incident.get("alertSummary") or "Untitled incident"
+    )
     status = str(incident.get("status", "open"))
     severity = str(incident.get("severity", "unknown"))
     recovery_verified = bool(incident.get("recoveryVerified"))
@@ -417,7 +442,12 @@ def _render_incident_detail(
         st.caption(f"Alert · {incident['alertSummary']}")
 
     action_left, action_mid, action_right = st.columns([0.38, 0.31, 0.31])
-    can_investigate = _norm(status) in {"new", "needs_evidence", "needs_human", "monitoring"}
+    can_investigate = _norm(status) in {
+        "new",
+        "needs_evidence",
+        "needs_human",
+        "monitoring",
+    }
     if action_left.button(
         "Run AI investigation",
         type="primary",
@@ -451,7 +481,9 @@ def _render_incident_detail(
         ["Evidence", "Actions & approvals", "Audit timeline"]
     )
     with evidence_tab:
-        _render_evidence(incident.get("evidence") or [], incident.get("missingInformation") or [])
+        _render_evidence(
+            incident.get("evidence") or [], incident.get("missingInformation") or []
+        )
     with actions_tab:
         _render_actions(client, incident, operator, role)
     with audit_tab:
@@ -488,7 +520,9 @@ def _render_diagnosis(incident: dict[str, Any]) -> None:
 
 def _render_evidence(evidence: list[dict[str, Any]], missing: list[Any]) -> None:
     if missing:
-        with st.expander(f"Missing information · {len(missing)} item(s)", expanded=True):
+        with st.expander(
+            f"Missing information · {len(missing)} item(s)", expanded=True
+        ):
             for item in missing:
                 st.markdown(f"- {item}")
 
@@ -503,7 +537,9 @@ def _render_evidence(evidence: list[dict[str, Any]], missing: list[Any]) -> None
     for index, item in enumerate(evidence):
         source = _pretty(item.get("source") or "observation")
         title = str(item.get("title") or f"Evidence {index + 1}")
-        detail = str(item.get("detail") or item.get("observation") or "No detail returned")
+        detail = str(
+            item.get("detail") or item.get("observation") or "No detail returned"
+        )
         created = _format_time(item.get("createdAt"))
         with st.container(border=True):
             head, time_column = st.columns([0.75, 0.25])
@@ -520,7 +556,7 @@ def _render_evidence(evidence: list[dict[str, Any]], missing: list[Any]) -> None
 
 
 def _render_actions(
-    client: ResolveOpsClient,
+    client: IncidentCopilotClient,
     incident: dict[str, Any],
     operator: str,
     role: str,
@@ -586,7 +622,7 @@ def _render_actions(
 
 
 def _render_decision_controls(
-    client: ResolveOpsClient,
+    client: IncidentCopilotClient,
     action_id: str,
     operator: str,
     role: str,
@@ -594,7 +630,9 @@ def _render_decision_controls(
     st.markdown("##### Human authorization required")
     role_authorized = role in {"incident_commander", "platform_engineer"}
     if not operator:
-        st.warning("Enter an operator identity in the sidebar before making a decision.")
+        st.warning(
+            "Enter an operator identity in the sidebar before making a decision."
+        )
     if not role_authorized:
         st.info(
             "The active role is read-only. Switch to an authorized role to approve or reject this action."
@@ -616,7 +654,9 @@ def _render_decision_controls(
         disabled=approve_disabled,
     ):
         _call_and_refresh(
-            lambda: client.approve_action(action_id, operator=operator, role=role, comment=comment),
+            lambda: client.approve_action(
+                action_id, operator=operator, role=role, comment=comment
+            ),
             "Action approved, executed and recorded.",
         )
     if reject_col.button(
@@ -626,7 +666,9 @@ def _render_decision_controls(
         disabled=approve_disabled,
     ):
         _call_and_refresh(
-            lambda: client.reject_action(action_id, operator=operator, role=role, comment=comment),
+            lambda: client.reject_action(
+                action_id, operator=operator, role=role, comment=comment
+            ),
             "Action rejected. No mutation was performed.",
         )
     st.caption(
@@ -656,7 +698,9 @@ def _render_timeline(timeline: list[dict[str, Any]]) -> None:
             f'<div class="timeline-actor">Actor · {html.escape(actor)}</div>'
             "</div>"
         )
-    st.markdown('<div class="timeline">' + "".join(items) + "</div>", unsafe_allow_html=True)
+    st.markdown(
+        '<div class="timeline">' + "".join(items) + "</div>", unsafe_allow_html=True
+    )
 
     detailed = [event for event in timeline if event.get("details")]
     if detailed:
@@ -726,7 +770,9 @@ def _render_portfolio_metrics(
 def _render_footer() -> None:
     st.markdown("---")
     left, right = st.columns([0.72, 0.28])
-    left.caption("ResolveOps · AI proposes · Policy constrains · Humans authorize · Code verifies")
+    left.caption(
+        "Incident Copilot · AI proposes · Policy constrains · Humans authorize · Code verifies"
+    )
     right.caption("Portfolio simulation · No production access")
 
 
@@ -801,7 +847,9 @@ def _incident_id(incident: dict[str, Any]) -> str:
 
 def _has_pending_approval(incident: dict[str, Any]) -> bool:
     actions = incident.get("actions") or []
-    return any(_action_requires_decision(str(action.get("status"))) for action in actions)
+    return any(
+        _action_requires_decision(str(action.get("status"))) for action in actions
+    )
 
 
 def _action_requires_decision(status: str) -> bool:
@@ -826,7 +874,8 @@ def _can_verify(incident: dict[str, Any]) -> bool:
         return True
     actions = incident.get("actions") or []
     return any(
-        _norm(action.get("status")) in {"executed", "completed", "approved", "succeeded", "success"}
+        _norm(action.get("status"))
+        in {"executed", "completed", "approved", "succeeded", "success"}
         for action in actions
     )
 

@@ -1,15 +1,15 @@
 <p align="center">
-  <img src="docs/architecture.svg" alt="ResolveOps architecture" width="920" />
+  <img src="docs/architecture.svg" alt="Incident Copilot architecture" width="920" />
 </p>
 
-# ResolveOps — AI Incident Response Copilot
+# Incident Copilot — Supervised AI Incident Response
 
-[![CI](https://github.com/dismality/resolveops-incident-copilot/actions/workflows/ci.yml/badge.svg)](https://github.com/dismality/resolveops-incident-copilot/actions/workflows/ci.yml)
+[![CI](https://github.com/dismality/incident-copilot/actions/workflows/ci.yml/badge.svg)](https://github.com/dismality/incident-copilot/actions/workflows/ci.yml)
 [![Python](https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white)](backend/)
 [![Java](https://img.shields.io/badge/Java-21-ED8B00?logo=openjdk&logoColor=white)](simulator-java/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-22c55e.svg)](LICENSE)
 
-ResolveOps is a supervised incident-response system that investigates simulated
+Incident Copilot is a supervised incident-response system that investigates simulated
 infrastructure alerts, gathers evidence with read-only tools, recommends a
 remediation, pauses for authorized human approval, executes the exact approved
 operation, and verifies whether the service actually recovered.
@@ -18,7 +18,7 @@ It is deliberately more than an incident chatbot. The model may reason and
 propose; deterministic software owns permission, execution, idempotency,
 verification, and auditability.
 
-> **Safety scope:** ResolveOps operates only against the included Java simulator.
+> **Safety scope:** Incident Copilot operates only against the included Java simulator.
 > It is not connected to production infrastructure and does not claim production
 > reliability or savings.
 
@@ -35,7 +35,7 @@ tool call is not treated as recovery until independent health checks pass.
 ## Why this project exists
 
 Operational AI is useful only when the system around the model handles failure
-well. ResolveOps demonstrates the engineering work that sits between a promising
+well. Incident Copilot demonstrates the engineering work that sits between a promising
 LLM response and a trustworthy enterprise workflow:
 
 - typed evidence and decisions instead of free-form guesses;
@@ -132,8 +132,8 @@ and [guardrails and approval guidance](https://developers.openai.com/api/docs/gu
 Requirements: Docker Desktop with Docker Compose.
 
 ```bash
-git clone https://github.com/dismality/resolveops-incident-copilot.git
-cd resolveops-incident-copilot
+git clone https://github.com/dismality/incident-copilot.git
+cd incident-copilot
 cp .env.example .env
 docker compose up --build
 ```
@@ -238,8 +238,8 @@ cd backend
 python -m venv .venv
 source .venv/bin/activate  # Windows: .venv\Scripts\activate
 pip install -e ".[dev]"
-ruff check resolveops_api tests
-pytest --cov=resolveops_api
+ruff check incident_copilot_api tests
+pytest --cov=incident_copilot_api
 ```
 
 Java:
@@ -260,7 +260,7 @@ recommendation with a declared manual baseline for each synthetic scenario. It
 does not present that estimate as observed production savings.
 
 A defensible experiment would ask operators to solve the same randomized cases
-with and without ResolveOps, then report:
+with and without Incident Copilot, then report:
 
 - median time to a correct recommendation;
 - diagnosis accuracy;

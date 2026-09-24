@@ -5,9 +5,9 @@ from logging.config import fileConfig
 from alembic import context
 from sqlalchemy import engine_from_config, pool
 
-from resolveops_api.config import get_settings
-from resolveops_api.database import Base
-from resolveops_api import db_models  # noqa: F401
+from incident_copilot_api.config import get_settings
+from incident_copilot_api.database import Base
+from incident_copilot_api import db_models  # noqa: F401
 
 
 config = context.config
@@ -45,4 +45,3 @@ if context.is_offline_mode():
     run_migrations_offline()
 else:
     run_migrations_online()
-

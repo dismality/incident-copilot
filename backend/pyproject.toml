@@ -3,7 +3,7 @@ requires = ["hatchling>=1.25"]
 build-backend = "hatchling.build"
 
 [project]
-name = "resolveops-api"
+name = "incident-copilot-api"
 version = "0.1.0"
 description = "Approval-gated AI incident response control plane"
 readme = "README.md"
@@ -29,7 +29,7 @@ dev = [
 ]
 
 [tool.hatch.build.targets.wheel]
-packages = ["resolveops_api"]
+packages = ["incident_copilot_api"]
 
 [tool.pytest.ini_options]
 addopts = "-q --disable-warnings --maxfail=1"
@@ -45,4 +45,4 @@ select = ["E", "F", "I", "B", "UP"]
 ignore = ["B008"]
 
 [tool.coverage.run]
-source = ["resolveops_api"]
+source = ["incident_copilot_api"]

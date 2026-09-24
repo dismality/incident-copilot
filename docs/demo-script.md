@@ -1,10 +1,10 @@
-# ResolveOps: three-minute recruiter demo
+# Incident Copilot: three-minute recruiter demo
 
 ## Demo goal
 
 Show one complete, supervised resolution path:
 
-> A simulated checkout deployment causes production-like errors. ResolveOps
+> A simulated checkout deployment causes production-like errors. Incident Copilot
 > gathers evidence, proposes an exact rollback, enforces human approval,
 > executes the change once, verifies recovery, and preserves an audit trail.
 
@@ -27,11 +27,11 @@ Say **simulated** whenever describing the infrastructure or measured outcome.
 
 ### 0:00–0:20 — Frame the product
 
-**On screen:** ResolveOps incident queue or landing page.
+**On screen:** Incident Copilot incident queue or landing page.
 
 **Say:**
 
-> ResolveOps is a supervised AI incident-response copilot. It investigates
+> Incident Copilot is a supervised AI incident-response copilot. It investigates
 > synthetic infrastructure incidents and can resolve them through narrow,
 > controlled tools. The model provides judgment, but ordinary Python policy
 > code owns authorization, approvals, execution, and verification.
@@ -111,7 +111,7 @@ Point to:
 > endpoint with an idempotency key. Retrying the same request returns the first
 > result instead of rolling back twice.
 
-> A successful API call does not close the incident. ResolveOps checks the
+> A successful API call does not close the incident. Incident Copilot checks the
 > simulator again and requires the error rate, latency, instance health, and
 > deployed version to meet deterministic runbook thresholds.
 

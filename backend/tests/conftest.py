@@ -5,10 +5,10 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
-from resolveops_api.agents.demo import DemoInvestigator
-from resolveops_api.config import Settings
-from resolveops_api.database import Base
-from resolveops_api.services.incidents import IncidentService
+from incident_copilot_api.agents.demo import DemoInvestigator
+from incident_copilot_api.config import Settings
+from incident_copilot_api.database import Base
+from incident_copilot_api.services.incidents import IncidentService
 
 from .fakes import FakeSimulator
 

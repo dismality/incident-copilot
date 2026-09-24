@@ -2,9 +2,9 @@ from __future__ import annotations
 
 import pytest
 
-from resolveops_api.policy import PolicyViolation
-from resolveops_api.schemas import ApprovalRequest
-from resolveops_api.services.incidents import InvalidIncidentStateError
+from incident_copilot_api.policy import PolicyViolation
+from incident_copilot_api.schemas import ApprovalRequest
+from incident_copilot_api.services.incidents import InvalidIncidentStateError
 
 
 @pytest.mark.asyncio

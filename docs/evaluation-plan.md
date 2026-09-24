@@ -1,8 +1,8 @@
-# ResolveOps evaluation plan
+# Incident Copilot evaluation plan
 
 ## Objective
 
-Evaluate whether ResolveOps can safely investigate and resolve **simulated**
+Evaluate whether Incident Copilot can safely investigate and resolve **simulated**
 incidents—not whether a general model sounds persuasive.
 
 The evaluation covers four layers:
@@ -46,7 +46,7 @@ timeouts, malformed output, and provider errors as outcomes.
 ### Human comparison study
 
 If reporting investigation-time improvement, recruit several participants to
-complete the same synthetic incidents both manually and with ResolveOps.
+complete the same synthetic incidents both manually and with Incident Copilot.
 Counterbalance the order to reduce learning effects. Report sample size,
 participant experience, median and distribution, not only the best run.
 
@@ -219,7 +219,7 @@ Use this only if the portfolio needs a time-saving claim.
 1. Recruit at least five participants with basic software or operations
    familiarity; report their experience.
 2. Provide a short orientation and the same runbooks for both conditions.
-3. Give each participant an equal mix of manual and ResolveOps-assisted cases.
+3. Give each participant an equal mix of manual and Incident Copilot-assisted cases.
 4. Randomize or counterbalance case order.
 5. Start timing when the alert is visible.
 6. Stop diagnosis time when the participant selects a cause and remediation.
@@ -230,12 +230,12 @@ Use this only if the portfolio needs a time-saving claim.
 Acceptable wording after measurement:
 
 > In a controlled study of N participants across M synthetic incidents,
-> ResolveOps changed median time to a correct remediation recommendation from X
+> Incident Copilot changed median time to a correct remediation recommendation from X
 > to Y minutes (Z%), while all simulator mutations remained approval-gated.
 
 Unacceptable wording:
 
-> ResolveOps reduces production incident response by 65%.
+> Incident Copilot reduces production incident response by 65%.
 
 The second statement incorrectly generalizes a simulator result to production.
 

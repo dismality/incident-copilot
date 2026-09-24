@@ -1,8 +1,8 @@
-# ResolveOps threat model
+# Incident Copilot threat model
 
 ## Purpose and scope
 
-ResolveOps is a portfolio-scale, supervised incident-response system. A Python
+Incident Copilot is a portfolio-scale, supervised incident-response system. A Python
 control plane asks an AI model to investigate evidence from a Java
 infrastructure simulator, proposes a typed remediation, pauses for approval,
 executes an allowlisted simulator action, and verifies recovery against
@@ -334,5 +334,5 @@ real operational data:
   audit storage.
 - Fully calibrated model confidence scores.
 
-The honest portfolio claim is: **ResolveOps demonstrates supervised, policy-
+The honest portfolio claim is: **Incident Copilot demonstrates supervised, policy-
 controlled resolution of repeatable incidents in an isolated simulator.**

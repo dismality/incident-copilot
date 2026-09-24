@@ -2,15 +2,15 @@ services:
   postgres:
     image: postgres:16-alpine
     environment:
-      POSTGRES_DB: resolveops
-      POSTGRES_USER: resolveops
-      POSTGRES_PASSWORD: resolveops
+      POSTGRES_DB: incident_copilot
+      POSTGRES_USER: incident_copilot
+      POSTGRES_PASSWORD: incident_copilot
     ports:
       - "5432:5432"
     volumes:
-      - resolveops-postgres:/var/lib/postgresql/data
+      - incident-copilot-postgres:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U resolveops -d resolveops"]
+      test: ["CMD-SHELL", "pg_isready -U incident_copilot -d incident_copilot"]
       interval: 5s
       timeout: 3s
       retries: 10
@@ -34,7 +34,7 @@ services:
       - path: .env
         required: false
     environment:
-      DATABASE_URL: postgresql+psycopg://resolveops:resolveops@postgres:5432/resolveops
+      DATABASE_URL: postgresql+psycopg://incident_copilot:incident_copilot@postgres:5432/incident_copilot
       SIMULATOR_BASE_URL: http://simulator:8081
       RUNBOOK_DIRECTORY: /runbooks
       DASHBOARD_ORIGIN: http://localhost:8501
@@ -50,11 +50,11 @@ services:
     build:
       context: ./dashboard
     environment:
-      RESOLVEOPS_API_URL: http://api:8000
+      INCIDENT_COPILOT_API_URL: http://api:8000
     ports:
       - "8501:8501"
     depends_on:
       - api
 
 volumes:
-  resolveops-postgres:
+  incident-copilot-postgres:

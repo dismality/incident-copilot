@@ -9,7 +9,7 @@ import httpx
 DASHBOARD_DIR = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(DASHBOARD_DIR))
 
-from api_client import ResolveOpsClient
+from api_client import IncidentCopilotClient
 
 INCIDENT = {
     "id": "inc-001",
@@ -70,7 +70,9 @@ INCIDENT = {
 }
 
 
-def _response(method: str, url: str, payload: Any, status_code: int = 200) -> httpx.Response:
+def _response(
+    method: str, url: str, payload: Any, status_code: int = 200
+) -> httpx.Response:
     return httpx.Response(
         status_code,
         json=payload,
@@ -144,7 +146,7 @@ def test_approval_payload_is_bound_to_operator_role_and_comment(monkeypatch) -> 
         return _response(method, url, INCIDENT)
 
     monkeypatch.setattr(httpx, "request", fake_request)
-    client = ResolveOpsClient("http://control-plane:8000")
+    client = IncidentCopilotClient("http://control-plane:8000")
     client.approve_action(
         "act-1",
         operator="david@example.com",

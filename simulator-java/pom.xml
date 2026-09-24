@@ -11,11 +11,11 @@
         <relativePath/>
     </parent>
 
-    <groupId>io.resolveops</groupId>
-    <artifactId>infrastructure-simulator</artifactId>
+    <groupId>io.incidentcopilot</groupId>
+    <artifactId>incident-copilot-simulator</artifactId>
     <version>0.1.0</version>
-    <name>ResolveOps Infrastructure Simulator</name>
-    <description>Deterministic infrastructure simulator for the ResolveOps incident copilot.</description>
+    <name>Incident Copilot Infrastructure Simulator</name>
+    <description>Deterministic infrastructure simulator for Incident Copilot.</description>
 
     <properties>
         <java.version>21</java.version>

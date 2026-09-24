@@ -4,7 +4,7 @@ server:
 
 spring:
   application:
-    name: resolveops-infrastructure-simulator
+    name: incident-copilot-infrastructure-simulator
 
 management:
   endpoints:
@@ -15,6 +15,6 @@ management:
     health:
       show-details: never
 
-resolveops:
+incident-copilot:
   cors:
     allowed-origins: http://localhost:8000,http://127.0.0.1:8000,http://localhost:8501,http://127.0.0.1:8501

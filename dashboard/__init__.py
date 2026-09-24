@@ -1,1 +1,1 @@
-"""ResolveOps operator dashboard package."""
+"""Incident Copilot operator dashboard package."""

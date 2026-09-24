@@ -22,8 +22,8 @@ jobs:
           cache: pip
           cache-dependency-path: backend/pyproject.toml
       - run: pip install -e ".[dev]"
-      - run: ruff check resolveops_api tests
-      - run: pytest --cov=resolveops_api --cov-report=term-missing --cov-fail-under=75
+      - run: ruff check incident_copilot_api tests
+      - run: pytest --cov=incident_copilot_api --cov-report=term-missing --cov-fail-under=75
 
   java:
     runs-on: ubuntu-latest

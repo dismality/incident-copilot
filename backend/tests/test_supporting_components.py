@@ -2,12 +2,12 @@ from __future__ import annotations
 
 import pytest
 
-from resolveops_api.agents.demo import DemoInvestigator
-from resolveops_api.agents.factory import build_investigator
-from resolveops_api.policy import PolicyViolation, evaluate_proposal
-from resolveops_api.runbooks import RunbookNotFoundError, load_runbook
-from resolveops_api.schemas import ProposedAction
-from resolveops_api.serializers import incident_detail, incident_summary
+from incident_copilot_api.agents.demo import DemoInvestigator
+from incident_copilot_api.agents.factory import build_investigator
+from incident_copilot_api.policy import PolicyViolation, evaluate_proposal
+from incident_copilot_api.runbooks import RunbookNotFoundError, load_runbook
+from incident_copilot_api.schemas import ProposedAction
+from incident_copilot_api.serializers import incident_detail, incident_summary
 
 
 def make_proposal(tool_name: str, arguments: dict) -> ProposedAction:

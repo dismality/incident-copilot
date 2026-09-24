@@ -1,4 +1,4 @@
-"""Visual system for the ResolveOps Streamlit dashboard."""
+"""Visual system for the Incident Copilot Streamlit dashboard."""
 
 from __future__ import annotations
 

@@ -1,6 +1,6 @@
-# ResolveOps operator dashboard
+# Incident Copilot operator dashboard
 
-The Streamlit dashboard is the human-control surface for ResolveOps. It talks
+The Streamlit dashboard is the human-control surface for Incident Copilot. It talks
 only to the Python control plane; it never contacts the Java simulator or a
 model provider directly.
 
@@ -12,10 +12,10 @@ streamlit run app.py
 ```
 
 The default control-plane address is `http://localhost:8000`. Override it with
-the `RESOLVEOPS_API_URL` environment variable or from the dashboard sidebar.
+the `INCIDENT_COPILOT_API_URL` environment variable or from the dashboard sidebar.
 
 ```bash
-RESOLVEOPS_API_URL=http://localhost:8000 streamlit run app.py
+INCIDENT_COPILOT_API_URL=http://localhost:8000 streamlit run app.py
 ```
 
 The page remains usable when the control plane is offline: it shows the local
@@ -27,10 +27,10 @@ message instead of failing during import or rendering.
 Build from this directory:
 
 ```bash
-docker build -t resolveops-dashboard .
+docker build -t incident-copilot-dashboard .
 docker run --rm -p 8501:8501 \
-  -e RESOLVEOPS_API_URL=http://host.docker.internal:8000 \
-  resolveops-dashboard
+  -e INCIDENT_COPILOT_API_URL=http://host.docker.internal:8000 \
+  incident-copilot-dashboard
 ```
 
 ## Workflow represented in the UI

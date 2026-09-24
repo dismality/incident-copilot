@@ -2,13 +2,13 @@ from __future__ import annotations
 
 import pytest
 
-from resolveops_api.policy import (
+from incident_copilot_api.policy import (
     PolicyViolation,
     authorize_approval,
     canonical_argument_hash,
     evaluate_proposal,
 )
-from resolveops_api.schemas import ProposedAction
+from incident_copilot_api.schemas import ProposedAction
 
 
 def proposal(tool: str, arguments: dict) -> ProposedAction:

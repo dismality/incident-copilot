@@ -1,4 +1,4 @@
-# ResolveOps integration contract
+# Incident Copilot integration contract
 
 This document is the stable contract between the Python control plane, the
 Streamlit dashboard, and the Java infrastructure simulator.

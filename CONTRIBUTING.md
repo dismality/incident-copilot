@@ -1,6 +1,6 @@
 # Contributing
 
-ResolveOps is a portfolio reference project built around a strict trust
+Incident Copilot is a portfolio reference project built around a strict trust
 boundary: model output is a proposal, never authorization.
 
 1. Create a focused branch.
@@ -11,4 +11,3 @@ boundary: model output is a proposal, never authorization.
 
 Security-sensitive changes should also update `docs/threat-model.md` and the
 relevant adversarial cases in `docs/evaluation-plan.md`.
-

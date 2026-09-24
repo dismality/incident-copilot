@@ -1,4 +1,4 @@
-"""Small, defensive HTTP client for the ResolveOps control plane.
+"""Small, defensive HTTP client for the Incident Copilot control plane.
 
 Nothing in this module performs network I/O at import time.  Keeping the
 client separate from the Streamlit view also makes the dashboard easy to test
@@ -26,7 +26,7 @@ class ControlPlaneError(RuntimeError):
         return self.message
 
 
-class ResolveOpsClient:
+class IncidentCopilotClient:
     """Typed facade over the dashboard-facing control-plane endpoints."""
 
     def __init__(self, base_url: str, timeout_seconds: float = 5.0) -> None:
@@ -51,7 +51,9 @@ class ResolveOpsClient:
             )
             response.raise_for_status()
         except httpx.TimeoutException as exc:
-            raise ControlPlaneError("The control plane did not respond in time.", endpoint) from exc
+            raise ControlPlaneError(
+                "The control plane did not respond in time.", endpoint
+            ) from exc
         except httpx.ConnectError as exc:
             raise ControlPlaneError(
                 "The control plane is offline or unreachable.", endpoint
@@ -66,7 +68,9 @@ class ResolveOpsClient:
             ) from exc
         except httpx.HTTPError as exc:
             raise ControlPlaneError(
-                "The control plane request could not be completed.", endpoint, detail=str(exc)
+                "The control plane request could not be completed.",
+                endpoint,
+                detail=str(exc),
             ) from exc
 
         if response.status_code == 204 or not response.content:

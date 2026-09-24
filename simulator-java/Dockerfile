@@ -8,11 +8,11 @@ COPY src ./src
 RUN mvn -q -B verify
 
 FROM eclipse-temurin:21-jre-alpine
-RUN addgroup -S resolveops && adduser -S resolveops -G resolveops
+RUN addgroup -S incidentcopilot && adduser -S incidentcopilot -G incidentcopilot
 WORKDIR /app
 
-COPY --from=build /workspace/target/infrastructure-simulator-0.1.0.jar app.jar
-USER resolveops
+COPY --from=build /workspace/target/incident-copilot-simulator-0.1.0.jar app.jar
+USER incidentcopilot
 EXPOSE 8081
 
 ENTRYPOINT ["java", "-XX:MaxRAMPercentage=75.0", "-jar", "/app/app.jar"]

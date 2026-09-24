@@ -1,7 +1,7 @@
-# ResolveOps infrastructure simulator
+# Incident Copilot infrastructure simulator
 
 This Spring Boot service provides deterministic infrastructure incidents for the
-ResolveOps Python control plane. It contains no real cloud credentials and never
+Incident Copilot Python control plane. It contains no real cloud credentials and never
 touches real infrastructure. Starting a scenario resets all in-memory state.
 
 ## Run locally
@@ -15,8 +15,8 @@ mvn spring-boot:run
 Or build and run the self-contained image:
 
 ```bash
-docker build -t resolveops-simulator .
-docker run --rm -p 8081:8081 resolveops-simulator
+docker build -t incident-copilot-simulator .
+docker run --rm -p 8081:8081 incident-copilot-simulator
 ```
 
 The API is available at `http://localhost:8081`; Spring Boot health is exposed at
