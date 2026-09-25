@@ -84,6 +84,10 @@ Pause on the diagnosis and show that the recommendation is
 
 **On screen:** Pending approval card.
 
+The decision field asks for a plain-language reason and provides separate approve
+and reject examples. The operator documents their reasoning; they do not type a
+command or modify the proposed tool arguments.
+
 **Say:**
 
 > The model's recommendation is only a proposal. A deterministic policy engine

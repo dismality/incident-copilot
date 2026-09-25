@@ -17,7 +17,6 @@ from datetime import UTC, datetime
 from typing import Any, TypeVar
 
 import streamlit as st
-
 from api_client import ControlPlaneError, IncidentCopilotClient
 from styles import inject_styles
 
@@ -653,9 +652,12 @@ def _render_decision_controls(
         )
     comment_key = f"comment_{action_id}"
     comment = st.text_area(
-        "Decision comment",
+        "Reason for your decision",
         key=comment_key,
-        placeholder="State the evidence or concern behind this decision…",
+        placeholder=(
+            "Approve: Evidence supports rollback; release timing and healthy dependencies confirm it.\n"
+            "Reject: Dependency health is not confirmed; gather more evidence first."
+        ),
         height=85,
     ).strip()
     approve_col, reject_col = st.columns(2)
