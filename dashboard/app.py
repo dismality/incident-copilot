@@ -17,6 +17,7 @@ from datetime import UTC, datetime
 from typing import Any, TypeVar
 
 import streamlit as st
+
 from api_client import ControlPlaneError, IncidentCopilotClient
 from styles import inject_styles
 
