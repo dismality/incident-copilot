@@ -112,6 +112,8 @@ class IncidentSummary(CamelModel):
     id: str
     title: str
     scenario_key: str
+    source: str
+    external_reference: str | None = None
     service: str
     environment: str
     region: str
@@ -152,6 +154,47 @@ class IncidentNoteRequest(CamelModel):
         if not normalized:
             raise ValueError("must not be blank")
         return normalized
+
+
+class AlertmanagerAlert(CamelModel):
+    status: Literal["firing", "resolved"]
+    labels: dict[str, str]
+    annotations: dict[str, str] = Field(default_factory=dict)
+    starts_at: datetime | str
+    ends_at: datetime | str | None = None
+    generator_url: str | None = Field(default=None, alias="generatorURL")
+    fingerprint: str = Field(min_length=1, max_length=200)
+
+    @field_validator("labels", "annotations")
+    @classmethod
+    def bound_monitoring_metadata(cls, value: dict[str, str]) -> dict[str, str]:
+        if len(value) > 50:
+            raise ValueError("must contain no more than 50 entries")
+        if any(len(key) > 160 or len(item) > 4000 for key, item in value.items()):
+            raise ValueError("monitoring metadata is too large")
+        return value
+
+
+class AlertmanagerWebhook(CamelModel):
+    version: str
+    group_key: str = Field(max_length=500)
+    status: Literal["firing", "resolved"]
+    receiver: str = Field(max_length=160)
+    alerts: list[AlertmanagerAlert] = Field(min_length=1, max_length=50)
+
+
+class AlertmanagerIngestionResponse(CamelModel):
+    created_incident_ids: list[str] = Field(default_factory=list)
+    deduplicated_incident_ids: list[str] = Field(default_factory=list)
+    resolved_incident_ids: list[str] = Field(default_factory=list)
+    ignored_alerts: list[str] = Field(default_factory=list)
+
+
+class ScenarioInjectionResponse(CamelModel):
+    scenario_key: str
+    title: str
+    description: str
+    detection_status: Literal["awaiting_prometheus"] = "awaiting_prometheus"
 
 
 class MetricsResponse(CamelModel):

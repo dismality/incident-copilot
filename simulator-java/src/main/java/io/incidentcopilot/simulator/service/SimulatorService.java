@@ -73,6 +73,43 @@ public class SimulatorService {
         return List.copyOf(requireService(service).dependencies);
     }
 
+    public synchronized double metricErrorRate(String service) {
+        return activeService(service) == null ? 0.0 : activeService(service).service.errorRate;
+    }
+
+    public synchronized double metricLatencyMs(String service) {
+        return activeService(service) == null ? 0.0 : activeService(service).service.latencyMs;
+    }
+
+    public synchronized double metricCpuPercent(String service) {
+        return activeService(service) == null ? 0.0 : activeService(service).service.cpuPercent;
+    }
+
+    public synchronized double metricDiskFreePercent(String service) {
+        return activeService(service) == null ? 100.0 : activeService(service).service.diskFreePercent;
+    }
+
+    public synchronized double metricQueueDepth(String service) {
+        ActiveScenario scenario = activeService(service);
+        if (scenario == null) {
+            return 0.0;
+        }
+        Object value = scenario.service.details.getOrDefault("queuedMessages", 0);
+        return value instanceof Number number ? number.doubleValue() : 0.0;
+    }
+
+    public synchronized double metricDependencyAvailable(String service, String dependency) {
+        ActiveScenario scenario = activeService(service);
+        if (scenario == null) {
+            return 1.0;
+        }
+        return scenario.dependencies.stream()
+                .filter(item -> item.name().equals(dependency))
+                .findFirst()
+                .map(item -> "healthy".equalsIgnoreCase(item.status()) ? 1.0 : 0.0)
+                .orElse(1.0);
+    }
+
     public synchronized ActionExecution rollback(
             String service,
             String targetVersion,
@@ -213,6 +250,13 @@ public class SimulatorService {
         }
         if (!activeScenario.service.service.equals(service)) {
             throw new ServiceNotFoundException(service);
+        }
+        return activeScenario;
+    }
+
+    private ActiveScenario activeService(String service) {
+        if (activeScenario == null || !activeScenario.service.service.equals(service)) {
+            return null;
         }
         return activeScenario;
     }

@@ -9,6 +9,7 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session, selectinload
 
 from ..agents.base import InvestigationContext, Investigator
+from ..alertmanager import internal_alert, monitoring_event_reference, profile_for
 from ..audit import record_event
 from ..config import Settings
 from ..db_models import Action, Approval, Evidence, Incident
@@ -22,6 +23,8 @@ from ..policy import (
 from ..runbooks import load_runbook
 from ..schemas import (
     Alert,
+    AlertmanagerIngestionResponse,
+    AlertmanagerWebhook,
     ApprovalRequest,
     IncidentNoteRequest,
     InvestigationDecision,
@@ -54,7 +57,14 @@ class IncidentService:
     async def list_scenarios(self) -> list[dict[str, Any]]:
         return await self.simulator.list_scenarios()
 
+    async def inject_scenario(self, scenario_key: str) -> dict[str, Any]:
+        """Inject a failure; monitoring is responsible for creating the incident."""
+
+        return await self.simulator.start_scenario(scenario_key)
+
     async def launch_scenario(self, scenario_key: str) -> Incident:
+        """Legacy direct-ingestion path retained for API compatibility and tests."""
+
         snapshot = await self.simulator.start_scenario(scenario_key)
         raw_alert = snapshot.get("alert", {})
         alert = Alert.model_validate(raw_alert)
@@ -81,6 +91,97 @@ class IncidentService:
         )
         self.db.commit()
         return self.get_incident(incident.id)
+
+    def ingest_alertmanager(self, payload: AlertmanagerWebhook) -> AlertmanagerIngestionResponse:
+        created: list[str] = []
+        deduplicated: list[str] = []
+        resolved: list[str] = []
+        ignored: list[str] = []
+
+        for incoming in payload.alerts:
+            profile = profile_for(incoming)
+            alert_name = incoming.labels.get("alertname", "unknown")
+            if profile is None:
+                ignored.append(alert_name)
+                continue
+
+            external_reference = monitoring_event_reference(incoming)
+
+            existing = self.db.scalar(
+                select(Incident).where(
+                    Incident.source == "prometheus_alertmanager",
+                    Incident.external_reference == external_reference,
+                )
+            )
+            if incoming.status == "resolved":
+                if existing is None:
+                    ignored.append(alert_name)
+                    continue
+                alert_data = dict(existing.alert_data or {})
+                if alert_data.get("externalStatus") != "resolved":
+                    alert_data["externalStatus"] = "resolved"
+                    existing.alert_data = alert_data
+                    existing.updated_at = datetime.now(UTC)
+                    record_event(
+                        self.db,
+                        incident_id=existing.id,
+                        event_type="external_alert_resolved",
+                        actor="prometheus-alertmanager",
+                        message=(
+                            "Alertmanager reported normal metrics; independent recovery "
+                            "verification is still required."
+                        ),
+                        details={"fingerprint": incoming.fingerprint},
+                    )
+                resolved.append(existing.id)
+                continue
+
+            if existing is not None:
+                deduplicated.append(existing.id)
+                continue
+
+            alert = internal_alert(incoming)
+            incident = Incident(
+                title=profile.title,
+                scenario_key=profile.incident_type,
+                source="prometheus_alertmanager",
+                external_reference=external_reference,
+                service=alert.service,
+                environment=alert.environment,
+                region=alert.region,
+                severity=alert.severity,
+                status="new",
+                alert_summary=alert.summary,
+                alert_data={
+                    **alert.model_dump(mode="json", by_alias=True),
+                    "externalStatus": "firing",
+                    "groupKey": payload.group_key,
+                    "generatorUrl": incoming.generator_url,
+                },
+            )
+            self.db.add(incident)
+            self.db.flush()
+            record_event(
+                self.db,
+                incident_id=incident.id,
+                event_type="alert_received",
+                actor="prometheus-alertmanager",
+                message=alert.summary,
+                details={
+                    "alertName": alert_name,
+                    "fingerprint": incoming.fingerprint,
+                    "source": "prometheus_alertmanager",
+                },
+            )
+            created.append(incident.id)
+
+        self.db.commit()
+        return AlertmanagerIngestionResponse(
+            created_incident_ids=created,
+            deduplicated_incident_ids=deduplicated,
+            resolved_incident_ids=resolved,
+            ignored_alerts=ignored,
+        )
 
     def list_incidents(self) -> list[Incident]:
         stmt = (
@@ -362,9 +463,16 @@ class IncidentService:
             incident.status = "resolved"
             incident.resolved_at = datetime.now(UTC)
             event_type = "recovery_verified"
-        elif incident.scenario_key in {"provider-outage", "ambiguous-login"}:
+        elif incident.scenario_key in {
+            "provider-outage",
+            "email-backlog",
+            "ambiguous-login",
+            "auth-degradation",
+        }:
             incident.status = (
-                "monitoring" if incident.scenario_key == "provider-outage" else "needs_evidence"
+                "monitoring"
+                if incident.scenario_key in {"provider-outage", "email-backlog"}
+                else "needs_evidence"
             )
             event_type = "verification_inconclusive"
         else:
@@ -404,28 +512,28 @@ class IncidentService:
         cpu = float(health.get("cpuPercent", health.get("cpu_percent", 100)))
         disk_free = float(health.get("diskFreePercent", health.get("disk_free_percent", 0)))
 
-        if scenario_key == "bad-deployment":
+        if scenario_key in {"bad-deployment", "checkout-degradation"}:
             ok = status == "healthy" and error_rate < 0.02 and latency < 700
             return ok, (
                 "Recovery verified: checkout health returned within the runbook thresholds."
                 if ok
                 else "Rollback executed, but checkout health remains outside safe thresholds."
             )
-        if scenario_key == "traffic-surge":
+        if scenario_key in {"traffic-surge", "search-degradation"}:
             ok = status == "healthy" and cpu < 70 and latency < 800
             return ok, (
                 "Recovery verified: capacity and latency returned within thresholds."
                 if ok
                 else "Scaling completed, but capacity thresholds are still not satisfied."
             )
-        if scenario_key == "disk-pressure":
+        if scenario_key in {"disk-pressure", "reporting-storage"}:
             ok = status == "healthy" and disk_free >= 25
             return ok, (
                 "Recovery verified: free disk space is above 25% and the worker is healthy."
                 if ok
                 else "Cleanup completed, but disk or worker health remains unsafe."
             )
-        if scenario_key == "provider-outage":
+        if scenario_key in {"provider-outage", "email-backlog"}:
             return False, "Internal service is stable; continue monitoring the external provider."
         return False, "Evidence remains insufficient for a verified recovery decision."
 

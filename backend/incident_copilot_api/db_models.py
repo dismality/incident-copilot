@@ -3,7 +3,17 @@ from __future__ import annotations
 from datetime import UTC, datetime
 from uuid import uuid4
 
-from sqlalchemy import JSON, Boolean, DateTime, Float, ForeignKey, Integer, String, Text
+from sqlalchemy import (
+    JSON,
+    Boolean,
+    DateTime,
+    Float,
+    ForeignKey,
+    Integer,
+    String,
+    Text,
+    UniqueConstraint,
+)
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from .database import Base
@@ -19,10 +29,15 @@ def new_id(prefix: str) -> str:
 
 class Incident(Base):
     __tablename__ = "incidents"
+    __table_args__ = (
+        UniqueConstraint("source", "external_reference", name="uq_incident_external_source"),
+    )
 
     id: Mapped[str] = mapped_column(String(32), primary_key=True, default=lambda: new_id("inc"))
     title: Mapped[str] = mapped_column(String(200))
     scenario_key: Mapped[str] = mapped_column(String(80), index=True)
+    source: Mapped[str] = mapped_column(String(80), default="simulator", index=True)
+    external_reference: Mapped[str | None] = mapped_column(String(200), nullable=True)
     service: Mapped[str] = mapped_column(String(120), index=True)
     environment: Mapped[str] = mapped_column(String(40), index=True)
     region: Mapped[str] = mapped_column(String(80))

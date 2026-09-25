@@ -7,7 +7,7 @@ from incident_copilot_api.agents.demo import DemoInvestigator
 from incident_copilot_api.agents.factory import build_investigator
 from incident_copilot_api.policy import PolicyViolation, evaluate_proposal
 from incident_copilot_api.runbooks import RunbookNotFoundError, load_runbook
-from incident_copilot_api.schemas import IncidentNoteRequest, ProposedAction
+from incident_copilot_api.schemas import AlertmanagerAlert, IncidentNoteRequest, ProposedAction
 from incident_copilot_api.serializers import incident_detail, incident_summary
 
 
@@ -78,6 +78,17 @@ def test_incident_note_rejects_blank_messages(message):
             operator="oncall@example.com",
             role="incident_commander",
             message=message,
+        )
+
+
+def test_alertmanager_metadata_is_size_limited():
+    with pytest.raises(ValidationError):
+        AlertmanagerAlert(
+            status="firing",
+            labels={"alertname": "HighCheckoutErrorRate", "service": "checkout-api"},
+            annotations={"summary": "x" * 4001},
+            startsAt="2026-09-26T08:15:00Z",
+            fingerprint="alert-1",
         )
 
 

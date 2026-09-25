@@ -38,6 +38,8 @@ services:
       SIMULATOR_BASE_URL: http://simulator:8081
       RUNBOOK_DIRECTORY: /runbooks
       DASHBOARD_ORIGIN: http://localhost:8501
+      ALERTMANAGER_WEBHOOK_TOKEN: ${ALERTMANAGER_WEBHOOK_TOKEN:-demo-monitoring-token-change-me}
+      ALERTMANAGER_AUTO_INVESTIGATE: "true"
     ports:
       - "8000:8000"
     depends_on:
@@ -45,6 +47,31 @@ services:
         condition: service_healthy
       simulator:
         condition: service_healthy
+
+  alertmanager:
+    image: prom/alertmanager:v0.28.1
+    command:
+      - --config.file=/etc/alertmanager/alertmanager.yml
+    volumes:
+      - ./monitoring/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+    ports:
+      - "9093:9093"
+    depends_on:
+      - api
+
+  prometheus:
+    image: prom/prometheus:v3.5.0
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./monitoring/alerts.yml:/etc/prometheus/alerts.yml:ro
+      - incident-copilot-prometheus:/prometheus
+    ports:
+      - "9090:9090"
+    depends_on:
+      - simulator
+      - alertmanager
 
   dashboard:
     build:
@@ -58,3 +85,4 @@ services:
 
 volumes:
   incident-copilot-postgres:
+  incident-copilot-prometheus:

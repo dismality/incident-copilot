@@ -35,10 +35,10 @@ docker run --rm -p 8501:8501 \
 
 ## Workflow represented in the UI
 
-1. Launch a deterministic simulator scenario.
-2. Select its incident from the command queue.
-3. Run the AI investigation and inspect its cited evidence.
-4. Review the typed action and its exact arguments.
+1. Inject a deterministic failure into the simulator.
+2. Let Prometheus detect the abnormal metrics and Alertmanager open the incident.
+3. Select the automatically investigated incident from the command queue.
+4. Inspect cited evidence and review the typed action with its exact arguments.
 5. Approve or reject it with an attributed operator comment.
 6. Verify recovery against deterministic thresholds.
 7. Add an attributed incident note, then review the append-only Track history

@@ -1,23 +1,28 @@
 from __future__ import annotations
 
+import hmac
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
+from typing import Annotated
 
-from fastapi import Depends, FastAPI, HTTPException, status
+from fastapi import BackgroundTasks, Depends, FastAPI, Header, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 
 from .agents import build_investigator
 from .config import get_settings
-from .database import Base, engine, get_db
+from .database import Base, SessionLocal, engine, get_db
 from .policy import PolicyViolation
 from .schemas import (
+    AlertmanagerIngestionResponse,
+    AlertmanagerWebhook,
     ApprovalRequest,
     HealthResponse,
     IncidentDetail,
     IncidentNoteRequest,
     IncidentSummary,
     MetricsResponse,
+    ScenarioInjectionResponse,
 )
 from .serializers import incident_detail, incident_summary
 from .services.incidents import (
@@ -60,6 +65,26 @@ def service(db: Session = Depends(get_db)) -> IncidentService:
     return IncidentService(db, settings, simulator, investigator)
 
 
+async def investigate_in_background(incident_id: str) -> None:
+    with SessionLocal() as db:
+        app_service = IncidentService(db, settings, simulator, investigator)
+        await app_service.investigate(incident_id)
+
+
+async def verify_in_background(incident_id: str) -> None:
+    with SessionLocal() as db:
+        app_service = IncidentService(db, settings, simulator, investigator)
+        incident = app_service.get_incident(incident_id)
+        if incident.status in {"verifying", "monitoring", "needs_evidence", "needs_human"}:
+            await app_service.verify(incident_id)
+
+
+def require_alertmanager_token(authorization: str | None) -> None:
+    expected = f"Bearer {settings.alertmanager_webhook_token}"
+    if authorization is None or not hmac.compare_digest(authorization, expected):
+        raise HTTPException(status_code=401, detail="Invalid monitoring webhook token")
+
+
 def translate_error(exc: Exception) -> HTTPException:
     if isinstance(exc, IncidentNotFoundError):
         return HTTPException(status_code=404, detail="Incident or action not found")
@@ -88,16 +113,58 @@ async def scenarios(app_service: IncidentService = Depends(service)):
 
 
 @app.post(
+    "/api/v1/scenarios/{scenario_key}/inject",
+    response_model=ScenarioInjectionResponse,
+    status_code=status.HTTP_202_ACCEPTED,
+    tags=["scenarios"],
+)
+async def inject_scenario(
+    scenario_key: str, app_service: IncidentService = Depends(service)
+) -> ScenarioInjectionResponse:
+    try:
+        activation = await app_service.inject_scenario(scenario_key)
+        return ScenarioInjectionResponse.model_validate(activation)
+    except Exception as exc:
+        raise translate_error(exc) from exc
+
+
+@app.post(
     "/api/v1/scenarios/{scenario_key}/launch",
     response_model=IncidentDetail,
     status_code=status.HTTP_201_CREATED,
     tags=["scenarios"],
+    deprecated=True,
 )
 async def launch_scenario(
     scenario_key: str, app_service: IncidentService = Depends(service)
 ) -> IncidentDetail:
     try:
         return incident_detail(await app_service.launch_scenario(scenario_key))
+    except Exception as exc:
+        raise translate_error(exc) from exc
+
+
+@app.post(
+    "/api/v1/integrations/alertmanager",
+    response_model=AlertmanagerIngestionResponse,
+    status_code=status.HTTP_202_ACCEPTED,
+    tags=["integrations"],
+)
+def receive_alertmanager_webhook(
+    payload: AlertmanagerWebhook,
+    background_tasks: BackgroundTasks,
+    authorization: Annotated[str | None, Header()] = None,
+    app_service: IncidentService = Depends(service),
+) -> AlertmanagerIngestionResponse:
+    require_alertmanager_token(authorization)
+    try:
+        result = app_service.ingest_alertmanager(payload)
+        if settings.alertmanager_auto_investigate:
+            for incident_id in result.created_incident_ids:
+                background_tasks.add_task(investigate_in_background, incident_id)
+            for incident_id in result.resolved_incident_ids:
+                background_tasks.add_task(verify_in_background, incident_id)
+        return result
     except Exception as exc:
         raise translate_error(exc) from exc
 

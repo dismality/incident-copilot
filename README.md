@@ -9,8 +9,8 @@
 [![Java](https://img.shields.io/badge/Java-21-ED8B00?logo=openjdk&logoColor=white)](simulator-java/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-22c55e.svg)](LICENSE)
 
-Incident Copilot is a supervised incident-response system that investigates simulated
-infrastructure alerts, gathers evidence with read-only tools, recommends a
+Incident Copilot is a supervised incident-response system that detects simulated
+infrastructure failures through Prometheus and Alertmanager, gathers evidence with read-only tools, recommends a
 remediation, pauses for authorized human approval, executes the exact approved
 operation, and verifies whether the service actually recovered.
 
@@ -50,7 +50,11 @@ LLM response and a trustworthy enterprise workflow:
 ## End-to-end workflow
 
 ```text
-Simulated alert
+Operator injects a controlled failure into the Java simulator
+      ↓
+Prometheus detects abnormal service metrics
+      ↓
+Alertmanager sends a deduplicated, authenticated webhook
       ↓
 AI gathers health, logs, deployments, dependencies, and runbook evidence
       ↓
@@ -87,6 +91,8 @@ to act.
 | One focused investigator | Keeps ownership and evaluation clear; multi-agent complexity would not improve this bounded workflow |
 | OpenAI mode plus offline demo mode | Proves real tool-using AI integration while keeping the repository runnable for reviewers without a paid key |
 | Java simulator | Gives remediation tools real state to change and proves Python/Java integration without risking cloud resources |
+| Prometheus + Alertmanager | Separates symptom detection from AI diagnosis; scenario names never create incidents directly |
+| Alert fingerprints | Retries update the same incident instead of opening duplicate cases |
 | Pydantic structured output | Makes downstream policy consume a validated contract rather than scrape prose |
 | Application-owned policy | The model cannot grant itself permission or weaken production rules |
 | Exact argument hash | Approval for one service/version cannot silently authorize a changed target |
@@ -120,6 +126,7 @@ to act.
 ### Operations
 
 - Docker Compose
+- Prometheus metrics, alert rules, and Alertmanager webhook delivery
 - GitHub Actions for Python, Java, and Compose validation
 - health checks, CORS boundaries, and environment-based secrets
 
@@ -144,9 +151,11 @@ Open:
 - Operator dashboard: <http://localhost:8501>
 - FastAPI documentation: <http://localhost:8000/docs>
 - Java simulator health: <http://localhost:8081/actuator/health>
+- Prometheus targets and alerts: <http://localhost:9090>
+- Alertmanager alert groups: <http://localhost:9093>
 
 `AGENT_MODE=demo` is the default. This mode gathers real simulator evidence and
-uses deterministic scenario reasoning so the full approval and remediation path
+uses deterministic evidence checks so the full approval and remediation path
 can be evaluated without an external model.
 
 ## Enable model-driven investigation
@@ -172,14 +181,17 @@ the model loop.
 
 ## Try the flagship demonstration
 
-1. Open the dashboard and launch **Bad deployment**.
-2. Start investigation.
-3. Inspect health, logs, deployment history, dependencies, and the cited runbook.
-4. Review the rollback proposal and its exact target version.
-5. Enter an operator identity and approve as `incident_commander`.
-6. Observe the Java simulator change from version `2.8.1` to `2.8.0`.
-7. Run verification and confirm error rate and latency meet the runbook threshold.
-8. Add an attributed operator note and review Track history from alert to
+1. Open the dashboard and inject **Bad deployment**.
+2. Wait roughly 15–25 seconds for Prometheus to observe the metric threshold and
+   Alertmanager to open the incident.
+3. Refresh the workspace and open the automatically investigated incident.
+4. Inspect health, logs, deployment history, dependencies, and the cited runbook.
+5. Review the rollback proposal and its exact target version.
+6. Enter an operator identity and approve as `incident_commander`.
+7. Observe the Java simulator change from version `2.8.1` to `2.8.0`.
+8. Prometheus reports normal metrics; Incident Copilot independently verifies
+   error rate and latency before closing the case.
+9. Add an attributed operator note and review Track history from alert to
    verified recovery.
 
 The full three-minute narration is in [`docs/demo-script.md`](docs/demo-script.md).
@@ -220,7 +232,8 @@ The main control-plane endpoints are:
 ```text
 GET  /health
 GET  /api/v1/scenarios
-POST /api/v1/scenarios/{scenarioKey}/launch
+POST /api/v1/scenarios/{scenarioKey}/inject
+POST /api/v1/integrations/alertmanager
 GET  /api/v1/incidents
 GET  /api/v1/incidents/{incidentId}
 POST /api/v1/incidents/{incidentId}/investigate
@@ -284,6 +297,7 @@ version, and measurement method. The honest portfolio description is:
 backend/          Python FastAPI control plane, agent, policy, persistence
 dashboard/        Streamlit operator experience
 simulator-java/   Spring Boot infrastructure simulator
+monitoring/        Prometheus scrape/rule config and Alertmanager routing
 runbooks/         Scenario procedures and recovery thresholds
 docs/             Architecture, threat model, evaluation plan, demo script
 specs/            Cross-language integration contract
@@ -298,8 +312,9 @@ specs/            Cross-language integration contract
   tamper-evident audit signing.
 - Redis and a worker queue should be introduced before long-running or concurrent
   remediation jobs.
-- Real monitoring and cloud integrations require independent least-privilege
-  credentials, network boundaries, and organization-specific change policy.
+- Prometheus observes the simulator rather than real company workloads; a
+  production deployment still requires organization-owned telemetry adapters,
+  least-privilege credentials, network boundaries, and change policy.
 
 ## License
 

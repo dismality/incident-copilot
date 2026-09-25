@@ -13,7 +13,8 @@ Say **simulated** whenever describing the infrastructure or measured outcome.
 
 ## Before recording
 
-- Start the Java simulator, Python API, PostgreSQL, and Streamlit dashboard.
+- Start the Java simulator, Prometheus, Alertmanager, Python API, PostgreSQL,
+  and Streamlit dashboard.
 - Confirm their health checks pass.
 - Confirm the model key is loaded server-side and is not visible in the browser.
 - Reset the `bad-deployment` scenario.
@@ -39,25 +40,28 @@ Say **simulated** whenever describing the infrastructure or measured outcome.
 Point briefly to the **Simulation** label. This prevents the audience from
 mistaking the demonstration for a live production integration.
 
-### 0:20–0:42 — Launch a coherent incident
+### 0:20–0:48 — Inject and detect a coherent incident
 
-**Action:** Start **Checkout failures after deployment**.
+**Action:** Inject **Checkout failures after deployment**, wait for the alert,
+then refresh the workspace.
 
 **On screen:** Critical alert for `checkout-api` in `production`, version
 `2.8.1`, with a 16% error rate.
 
 **Say:**
 
-> This scenario resets the Java simulator and introduces a regression after
-> release 2.8.1. The alert is stored as an incident, not pasted into a chatbot.
-> Its state, evidence, decisions, and actions are durable workflow records.
+> This button injects a failure into the Java simulator; it does not tell the
+> copilot the cause or create an incident directly. Prometheus detects the high
+> error-rate metric, and Alertmanager sends an authenticated webhook. The alert
+> describes only the symptom, while its workflow state becomes durable.
 
 Call attention to service, environment, severity, start time, and current
 status. Avoid explaining every field.
 
-### 0:42–1:18 — Investigate with evidence
+### 0:48–1:20 — Investigate with evidence
 
-**Action:** Select **Investigate** and let the timeline populate.
+**Action:** Open the incident created from the monitoring alert. In the default
+Compose configuration, its investigation runs automatically.
 
 **On screen:** Health check, recent deployments, logs, dependencies, retrieved
 runbook guidance, and a structured diagnosis.
@@ -76,7 +80,7 @@ runbook guidance, and a structured diagnosis.
 Pause on the diagnosis and show that the recommendation is
 `rollback_deployment` to exactly `2.8.0`.
 
-### 1:18–1:53 — Show the authority boundary
+### 1:20–1:53 — Show the authority boundary
 
 **On screen:** Pending approval card.
 
@@ -111,9 +115,10 @@ Point to:
 > endpoint with an idempotency key. Retrying the same request returns the first
 > result instead of rolling back twice.
 
-> A successful API call does not close the incident. Incident Copilot checks the
-> simulator again and requires the error rate, latency, instance health, and
-> deployed version to meet deterministic runbook thresholds.
+> A successful API call does not close the incident. Prometheus observes that
+> the metric is normal and Alertmanager reports the alert resolved, but Incident
+> Copilot still checks the simulator and requires deterministic runbook
+> thresholds to pass.
 
 Show `2.8.0`, healthy status, and the recovered error rate. Then show the
 incident state changing to **Resolved**.

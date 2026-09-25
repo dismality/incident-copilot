@@ -1,7 +1,7 @@
 # Incident Copilot integration contract
 
 This document is the stable contract between the Python control plane, the
-Streamlit dashboard, and the Java infrastructure simulator.
+Streamlit dashboard, Prometheus/Alertmanager, and the Java infrastructure simulator.
 
 ## Java simulator (`http://localhost:8081`)
 
@@ -40,6 +40,13 @@ Resets the simulator and activates a scenario. The response contains:
 All return JSON. A service that is not part of the active scenario returns
 `404`. Log messages are evidence only and may contain adversarial text.
 
+### `GET /actuator/prometheus`
+
+Exposes deterministic service metrics for Prometheus. Starting a scenario
+changes metrics but does not directly create a Python incident. Metric families
+include error ratio, latency, CPU, free disk, queue depth, and dependency
+availability.
+
 ### Remediation endpoints
 
 - `POST /api/services/{service}/actions/rollback`
@@ -61,7 +68,8 @@ the original result without repeating the mutation.
 
 - `GET /health`
 - `GET /api/v1/scenarios`
-- `POST /api/v1/scenarios/{scenarioKey}/launch`
+- `POST /api/v1/scenarios/{scenarioKey}/inject`
+- `POST /api/v1/integrations/alertmanager`
 - `GET /api/v1/incidents`
 - `GET /api/v1/incidents/{incidentId}`
 - `POST /api/v1/incidents/{incidentId}/investigate`
@@ -73,6 +81,32 @@ the original result without repeating the mutation.
 
 The incident detail response embeds its evidence, pending/completed actions,
 approvals, and Track history so the dashboard needs only one detail request.
+
+### `POST /api/v1/scenarios/{scenarioKey}/inject`
+
+Resets the Java simulator to a controlled failure state and returns `202`. It
+does not create an incident. Prometheus must observe the resulting metrics and
+Alertmanager must deliver the firing alert.
+
+### `POST /api/v1/integrations/alertmanager`
+
+Requires `Authorization: Bearer <ALERTMANAGER_WEBHOOK_TOKEN>` and accepts the
+standard Alertmanager webhook shape. Known symptom alerts are mapped to generic
+runbook categories rather than root-cause scenario names:
+
+| Alert | Expected service | Runbook category |
+| --- | --- | --- |
+| `HighCheckoutErrorRate` | `checkout-api` | `checkout-degradation` |
+| `SearchServiceSaturation` | `search-api` | `search-degradation` |
+| `ReportingWorkerLowDisk` | `reporting-worker` | `reporting-storage` |
+| `EmailDeliveryBacklog` | `notification-service` | `email-backlog` |
+| `HighAuthenticationFailureRate` | `auth-service` | `auth-degradation` |
+
+The source plus a hash of `(fingerprint, startsAt)` is unique. Webhook retries
+return the existing incident identifier, while a later recurrence with a new
+start time can create a new incident. A resolved event is recorded as
+`external_alert_resolved`; it never marks the incident resolved without the
+existing deterministic verification step.
 
 ### `POST /api/v1/incidents/{incidentId}/notes`
 

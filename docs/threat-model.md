@@ -48,6 +48,9 @@ state is missing or inconsistent.
    database account and schema permissions must limit modification paths.
 5. **Evidence to model context.** Logs, alerts, dependencies, and runbooks may
    contain adversarial text. They are data, not instructions.
+6. **Prometheus Alertmanager to Python API.** Monitoring webhooks are
+   authenticated, schema-validated, size-bounded, and deduplicated before they
+   can create workflow state. Alert labels and annotations remain untrusted.
 
 The Java simulator must remain isolated from real cloud accounts, production
 credentials, and production networks.
@@ -87,6 +90,10 @@ These properties should be covered by automated tests:
    an audit event.
 10. No simulator route, configuration, or credential can target real
     infrastructure.
+11. A scenario injection changes simulator metrics only; it cannot create an
+    incident without the monitoring webhook path.
+12. Replayed Alertmanager alert episodes create at most one incident, and an
+    external `resolved` status cannot bypass deterministic recovery checks.
 
 ## Threats and controls
 
@@ -182,6 +189,26 @@ changed state but before the control plane receives the response.
 **Residual risk.** Idempotency does not make every real-world infrastructure
 operation reversible. The simulator is designed to make these semantics
 observable; real integrations would require provider-specific reconciliation.
+
+### Forged or replayed monitoring alerts
+
+**Threat.** An attacker sends a fake Alertmanager payload, changes the service
+label, or repeatedly delivers the same event to create incidents and model cost.
+
+**Controls.**
+
+- Require a bearer token over the private service network and compare it in
+  constant time.
+- Validate the Alertmanager payload with strict size and count limits.
+- Map allowlisted alert names to expected services; reject mismatched labels.
+- Store a unique source plus fingerprint/start-time hash and deduplicate webhook
+  retries without suppressing a later recurrence.
+- Treat all annotations as untrusted display and model evidence.
+- Rate-limit the endpoint at the deployment boundary before production use.
+
+**Residual risk.** The committed token is deliberately a local demonstration
+credential. A production deployment would use a secret manager, TLS, rotation,
+network policy, and preferably workload identity or signed delivery.
 
 ### Secret exposure
 
@@ -326,6 +353,9 @@ real operational data:
 - [ ] Every deny, approve, execute, and verify event appears in the audit trail.
 - [ ] Operator notes are append-only, attributed, escaped, size-limited, and
       cannot change authorization or incident state.
+- [ ] Missing or invalid Alertmanager authorization returns `401`.
+- [ ] Duplicate alert fingerprints create one incident.
+- [ ] Monitoring `resolved` events remain subject to independent verification.
 - [ ] The simulator starts without production credentials and rejects nonlocal
       target URLs.
 - [ ] The UI labels all incidents and outcomes as simulated.

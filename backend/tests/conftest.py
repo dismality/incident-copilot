@@ -39,6 +39,8 @@ def app_settings():
         database_url="sqlite://",
         simulator_base_url="http://simulator.test",
         agent_mode="demo",
+        alertmanager_webhook_token="test-monitoring-token",
+        alertmanager_auto_investigate=False,
         runbook_directory=(__import__("pathlib").Path(__file__).resolve().parents[2] / "runbooks"),
     )
 

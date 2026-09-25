@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1050" viewBox="0 0 1600 1050" role="img" aria-labelledby="title description">
   <title id="title">Incident Copilot supervised incident-response architecture</title>
-  <desc id="description">Architecture diagram showing a Streamlit dashboard, Python control plane, OpenAI reasoning boundary, Java infrastructure simulator, PostgreSQL audit store, approval gate, remediation executor, and deterministic verification.</desc>
+  <desc id="description">Architecture diagram showing controlled failure injection, Prometheus and Alertmanager detection, a Streamlit dashboard, Python control plane, OpenAI reasoning boundary, Java infrastructure simulator, PostgreSQL audit store, approval gate, remediation executor, and deterministic verification.</desc>
   <defs>
     <linearGradient id="background" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0" stop-color="#071321"/>
@@ -48,7 +48,7 @@
   <rect x="0" y="0" width="1600" height="7" fill="url(#header)"/>
 
   <text x="70" y="72" class="title">Incident Copilot</text>
-  <text x="70" y="105" class="subtitle">Supervised AI incident response · evidence first · exact-action approval · deterministic verification</text>
+  <text x="70" y="105" class="subtitle">Metric-driven detection · evidence first · exact-action approval · deterministic verification</text>
   <rect x="1328" y="48" width="202" height="42" rx="21" fill="#132f43" stroke="#54d3ff" stroke-width="1.5"/>
   <circle cx="1352" cy="69" r="7" fill="#63e6be"/>
   <text x="1370" y="74" class="pill" fill="#bdefff">SIMULATED SYSTEMS</text>
@@ -70,9 +70,9 @@
   <!-- Operator lane -->
   <rect x="82" y="238" width="256" height="105" rx="14" fill="#13273a" stroke="#3f6988"/>
   <circle cx="108" cy="265" r="14" fill="#54d3ff"/><text x="104" y="270" class="step">1</text>
-  <text x="132" y="268" class="box-title">Incident queue</text>
-  <text x="102" y="298" class="box-copy">Launch a scenario or receive an alert</text>
-  <text x="102" y="321" class="box-copy">See severity, service, state, and age</text>
+  <text x="132" y="268" class="box-title">Failure injection + queue</text>
+  <text x="102" y="298" class="box-copy">Inject state; monitoring opens incident</text>
+  <text x="102" y="321" class="box-copy">See source, severity, service, and state</text>
 
   <rect x="82" y="387" width="256" height="160" rx="14" fill="#13273a" stroke="#ffba69" stroke-width="1.5"/>
   <circle cx="108" cy="414" r="14" fill="#ffba69"/><text x="104" y="419" class="step">5</text>
@@ -150,7 +150,7 @@
 
   <rect x="1155" y="424" width="360" height="326" rx="14" fill="#122838" stroke="#54d3ff" stroke-width="1.5"/>
   <text x="1180" y="456" class="box-title">Java infrastructure simulator</text>
-  <text x="1180" y="479" class="box-copy">Isolated, resettable state for safe demonstrations</text>
+  <text x="1180" y="479" class="box-copy">Resettable state + Prometheus metrics endpoint</text>
 
   <rect x="1180" y="506" width="310" height="84" rx="11" fill="#153246" stroke="#3e7191"/>
   <text x="1202" y="532" class="small">READ-ONLY EVIDENCE APIs</text>
@@ -165,9 +165,9 @@
   <rect x="1180" y="713" width="310" height="24" rx="12" fill="#173c32"/>
   <text x="1261" y="729" class="small" fill="#63e6be">SCENARIO STATE</text>
 
-  <rect x="1155" y="786" width="360" height="61" rx="14" fill="#101f30" stroke="#4b5d70"/>
-  <text x="1180" y="812" class="small">Supported scenario outcomes</text>
-  <text x="1180" y="833" class="tiny">Resolve · monitor only · gather more evidence · escalate</text>
+  <rect x="1155" y="786" width="360" height="61" rx="14" fill="#173029" stroke="#63e6be"/>
+  <text x="1180" y="812" class="small">PROMETHEUS + ALERTMANAGER</text>
+  <text x="1180" y="833" class="tiny">Scrape metrics · evaluate symptoms · deduplicate webhook</text>
 
   <!-- Flows -->
   <path d="M338 290 C375 290 384 282 420 282" class="flow" stroke="#54d3ff" marker-end="url(#arrowBlue)"/>
@@ -201,6 +201,11 @@
 
   <path d="M1180 583 C1084 583 1080 596 1070 610" class="flow" stroke="#63e6be" marker-end="url(#arrowGreen)"/>
   <text x="1081" y="572" class="tiny">health</text>
+
+  <path d="M1335 750 L1335 786" class="flow" stroke="#63e6be" marker-end="url(#arrowGreen)"/>
+  <text x="1350" y="773" class="tiny">metrics</text>
+  <path d="M1155 817 C1098 817 1110 282 1070 282" class="flow" stroke="#54d3ff" marker-end="url(#arrowBlue)"/>
+  <text x="1080" y="770" class="tiny">authenticated alert webhook</text>
 
   <path d="M420 812 C377 812 370 677 338 677" class="flow" stroke="#54d3ff" marker-end="url(#arrowBlue)"/>
   <text x="348" y="765" class="tiny">timeline</text>

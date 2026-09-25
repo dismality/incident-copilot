@@ -57,14 +57,18 @@ class DemoInvestigator:
             ),
         ]
 
+        # The incident type selects a relevant runbook, but the diagnosis is based
+        # on the affected service and collected evidence rather than a root-cause
+        # scenario name supplied by the dashboard.
         builders = {
-            "bad-deployment": self._bad_deployment,
-            "traffic-surge": self._traffic_surge,
-            "disk-pressure": self._disk_pressure,
-            "provider-outage": self._provider_outage,
-            "ambiguous-login": self._ambiguous_login,
+            "checkout-api": self._bad_deployment,
+            "search-api": self._traffic_surge,
+            "reporting-worker": self._disk_pressure,
+            "notification-service": self._provider_outage,
+            "auth-service": self._ambiguous_login,
+            "login-service": self._ambiguous_login,
         }
-        builder = builders.get(context.scenario_key, self._unknown)
+        builder = builders.get(context.alert.service, self._unknown)
         return builder(context, health, logs, deployments, dependencies, evidence)
 
     @staticmethod
@@ -101,18 +105,52 @@ class DemoInvestigator:
 
     @staticmethod
     def _bad_deployment(context, health, logs, deployments, dependencies, evidence):
+        log_text = " ".join(str(item.get("message", "")) for item in logs)
+        dependencies_healthy = bool(dependencies) and all(
+            str(item.get("status", "")).lower() == "healthy" for item in dependencies
+        )
+        if (
+            len(deployments) < 2
+            or "PaymentAdapterTimeout" not in log_text
+            or not dependencies_healthy
+        ):
+            return InvestigationDecision(
+                summary=(
+                    "Checkout is degraded, but deployment timing, logs, and dependency "
+                    "health do not yet support a safe root-cause decision."
+                ),
+                likely_cause=None,
+                confidence=0.35,
+                evidence=evidence,
+                missing_information=[
+                    "A confirmed failure signature",
+                    "A known-good prior deployment",
+                    "Complete dependency health",
+                ],
+                proposed_action=ProposedAction(
+                    tool_name="gather_more_evidence",
+                    arguments={},
+                    risk_level="low",
+                    reason="A symptom alone does not justify a production rollback.",
+                    expected_result="A supported diagnosis before any infrastructure change.",
+                ),
+            )
+
+        current_version = str(deployments[0].get("version", "unknown"))
+        target_version = str(deployments[1].get("version", "unknown"))
         return InvestigationDecision(
             summary=(
-                "The checkout failure began immediately after release 2.8.1, while the "
+                "The checkout failure began immediately after release "
+                f"{current_version}, while the "
                 "external payment provider remains healthy."
             ),
-            likely_cause="Regression in checkout-api release 2.8.1",
+            likely_cause=f"Regression in checkout-api release {current_version}",
             confidence=0.94,
             evidence=evidence,
             missing_information=[],
             proposed_action=ProposedAction(
                 tool_name="rollback_deployment",
-                arguments={"targetVersion": "2.8.0"},
+                arguments={"targetVersion": target_version},
                 risk_level="high",
                 reason=(
                     "The failure is tightly correlated with the release and isolated "

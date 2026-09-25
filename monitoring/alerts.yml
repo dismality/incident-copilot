@@ -1,0 +1,62 @@
+groups:
+  - name: incident-copilot-symptoms
+    rules:
+      - alert: HighCheckoutErrorRate
+        expr: incident_service_error_ratio{service="checkout-api"} > 0.10
+        for: 10s
+        labels:
+          severity: critical
+          service: checkout-api
+          environment: production
+          region: ap-southeast-1
+        annotations:
+          summary: Checkout error rate is above 10%
+          description: Checkout failures remain elevated; the cause is not yet known.
+
+      - alert: SearchServiceSaturation
+        expr: incident_service_cpu_percent{service="search-api"} > 85 and incident_service_latency_ms{service="search-api"} > 1000
+        for: 10s
+        labels:
+          severity: critical
+          service: search-api
+          environment: production
+          region: ap-southeast-1
+        annotations:
+          summary: Search latency and CPU are above their alert thresholds
+          description: Search is degraded; telemetry investigation is required.
+
+      - alert: ReportingWorkerLowDisk
+        expr: incident_service_disk_free_percent{service="reporting-worker"} < 5
+        for: 10s
+        labels:
+          severity: critical
+          service: reporting-worker
+          environment: production
+          region: ap-southeast-1
+        annotations:
+          summary: Reporting worker has less than 5% free disk
+          description: Storage is critically low; the consuming data is not yet classified.
+
+      - alert: EmailDeliveryBacklog
+        expr: incident_service_queue_depth{service="notification-service"} > 2000
+        for: 10s
+        labels:
+          severity: critical
+          service: notification-service
+          environment: production
+          region: ap-southeast-1
+        annotations:
+          summary: Email delivery queue is growing rapidly
+          description: Delivery is degraded; determine whether the service or a dependency is responsible.
+
+      - alert: HighAuthenticationFailureRate
+        expr: incident_service_error_ratio{service="auth-service"} >= 0.08
+        for: 10s
+        labels:
+          severity: warning
+          service: auth-service
+          environment: production
+          region: ap-southeast-1
+        annotations:
+          summary: Authentication failures are elevated
+          description: Several causes are plausible and additional evidence may be required.

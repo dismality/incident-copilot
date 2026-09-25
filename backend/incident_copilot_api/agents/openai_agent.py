@@ -92,8 +92,9 @@ class OpenAIInvestigator:
         result = await Runner.run(
             self.agent,
             (
-                f"Investigate incident {context.incident_id} for scenario "
-                f"{context.scenario_key}. Alert: {alert_json}"
+                f"Investigate incident {context.incident_id}. The runbook category is "
+                f"{context.scenario_key}; do not treat that category as a root cause. "
+                f"Alert: {alert_json}"
             ),
             context=context,
             max_turns=10,

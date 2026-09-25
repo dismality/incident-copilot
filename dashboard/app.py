@@ -247,7 +247,8 @@ def _render_connection_strip(
         )
         st.markdown(
             f'<div style="margin:1.15rem 0 .25rem">{_badge("Control plane " + health_status, "success", dot=True)} '
-            f"{_badge('Supervised execution', 'info')} {_badge('Simulation', 'purple')}</div>",
+            f"{_badge('Supervised execution', 'info')} {_badge('Prometheus detection', 'success')} "
+            f"{_badge('Simulation', 'purple')}</div>",
             unsafe_allow_html=True,
         )
     else:
@@ -276,7 +277,7 @@ def _render_metric_ribbon(
 
     columns = st.columns(3, gap="small")
     values = [
-        ("Total incidents", _display_number(total), "Simulation cases"),
+        ("Total incidents", _display_number(total), "Monitoring alerts"),
         ("Resolved", _display_number(resolved), "Recovery verified"),
         ("Pending approval", _display_number(pending), "Human decisions"),
     ]
@@ -291,7 +292,8 @@ def _render_scenarios(
 ) -> None:
     st.markdown(
         '<div class="ops-section-heading"><div><h2>Scenarios</h2>'
-        "<p>Launch a deterministic failure state and observe how the copilot responds.</p>"
+        "<p>Inject a deterministic failure. Prometheus detects the resulting metrics "
+        "and Alertmanager opens the incident.</p>"
         "</div></div>",
         unsafe_allow_html=True,
     )
@@ -322,7 +324,7 @@ def _render_scenarios(
                 unsafe_allow_html=True,
             )
             if st.button(
-                "Launch scenario",
+                "Inject failure",
                 key=f"launch_{key}",
                 use_container_width=True,
                 disabled=not connected or not key,
@@ -331,15 +333,16 @@ def _render_scenarios(
 
 
 def _launch(client: IncidentCopilotClient, scenario_key: str, title: str) -> None:
-    with st.spinner(f"Activating {title}…"):
-        incident, error = _attempt(lambda: client.launch_scenario(scenario_key))
+    with st.spinner(f"Injecting {title}…"):
+        _, error = _attempt(lambda: client.inject_scenario(scenario_key))
     if error:
         st.error(_error_copy(error))
         return
-    incident_id = _incident_id(incident or {})
-    if incident_id:
-        st.session_state.selected_incident_id = incident_id
-    _set_flash("success", f"Scenario launched: {title}")
+    _set_flash(
+        "success",
+        f"Failure injected: {title}. Prometheus is evaluating the service metrics; "
+        "refresh shortly to view the detected incident.",
+    )
     st.rerun()
 
 
@@ -386,6 +389,7 @@ def _render_incident_queue(
             incident.get("title") or incident.get("alertSummary") or "Untitled incident"
         )
         service = str(incident.get("service") or "Unknown service")
+        source = _pretty(incident.get("source") or "manual")
         created = _format_time(incident.get("createdAt"), compact=True)
         with st.container(border=True):
             st.markdown(
@@ -393,7 +397,7 @@ def _render_incident_queue(
                 f'<span class="incident-id">{html.escape(_short_id(incident_id))}</span>'
                 f"{_badge(_pretty(severity), _severity_tone(severity))}</div>"
                 f'<div style="font-weight:700;color:#edf5ff;font-size:.9rem;margin:.5rem 0 .2rem">{html.escape(title)}</div>'
-                f'<div class="ops-muted">{html.escape(service)} · {html.escape(created)}</div>'
+                f'<div class="ops-muted">{html.escape(service)} · {html.escape(source)} · {html.escape(created)}</div>'
                 f'<div style="margin-top:.55rem">{_badge(_pretty(status), _status_tone(status), dot=True)}</div>',
                 unsafe_allow_html=True,
             )
@@ -422,13 +426,15 @@ def _render_incident_detail(
     )
     status = str(incident.get("status", "open"))
     severity = str(incident.get("severity", "unknown"))
+    source = _pretty(incident.get("source") or "manual")
     recovery_verified = bool(incident.get("recoveryVerified"))
 
     st.markdown(
         f'<div class="ops-panel accent"><div style="display:flex;justify-content:space-between;gap:1rem;flex-wrap:wrap">'
         f'<div><div class="incident-id">INCIDENT · {html.escape(incident_id)}</div>'
         f'<div class="incident-title">{html.escape(title)}</div>'
-        f'<div class="ops-muted">{html.escape(str(incident.get("service") or "Unknown service"))} '
+        f'<div class="ops-muted">Source · {html.escape(source)} · '
+        f"{html.escape(str(incident.get('service') or 'Unknown service'))} "
         f"· {html.escape(str(incident.get('environment') or 'unknown'))} "
         f"· {html.escape(str(incident.get('region') or 'global'))}</div></div>"
         f"<div>{_badge(_pretty(severity), _severity_tone(severity))} "

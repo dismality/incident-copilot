@@ -89,9 +89,9 @@ class IncidentCopilotClient:
     def scenarios(self) -> list[dict[str, Any]]:
         return _as_list(self._request("GET", "/api/v1/scenarios"), "scenarios")
 
-    def launch_scenario(self, scenario_key: str) -> dict[str, Any]:
-        value = self._request("POST", f"/api/v1/scenarios/{scenario_key}/launch")
-        return _as_object(value, "incident")
+    def inject_scenario(self, scenario_key: str) -> dict[str, Any]:
+        value = self._request("POST", f"/api/v1/scenarios/{scenario_key}/inject")
+        return _as_object(value, "scenario")
 
     def incidents(self) -> list[dict[str, Any]]:
         return _as_list(self._request("GET", "/api/v1/incidents"), "incidents")

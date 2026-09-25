@@ -23,6 +23,8 @@ class Settings(BaseSettings):
     dashboard_origin: str = "http://localhost:8501"
     agent_mode: str = Field(default="demo", pattern="^(demo|openai)$")
     openai_model: str = "gpt-4.1-mini"
+    alertmanager_webhook_token: str = "demo-monitoring-token-change-me"
+    alertmanager_auto_investigate: bool = False
     request_timeout_seconds: float = 10.0
     runbook_directory: Path = Path(__file__).resolve().parents[2] / "runbooks"
 

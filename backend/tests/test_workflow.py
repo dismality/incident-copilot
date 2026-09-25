@@ -45,6 +45,21 @@ async def test_bad_deployment_can_be_approved_executed_and_verified(incident_ser
 
 
 @pytest.mark.asyncio
+async def test_checkout_symptom_without_supporting_evidence_does_not_trigger_rollback(
+    incident_service,
+    simulator,
+):
+    incident = await incident_service.launch_scenario("bad-deployment")
+    simulator.data["dependencies"] = []
+
+    incident = await incident_service.investigate(incident.id)
+
+    assert incident.likely_cause is None
+    assert incident.status == "needs_evidence"
+    assert incident.actions[0].tool_name == "gather_more_evidence"
+
+
+@pytest.mark.asyncio
 async def test_provider_outage_does_not_create_executable_action(incident_service):
     incident = await incident_service.launch_scenario("provider-outage")
     incident = await incident_service.investigate(incident.id)

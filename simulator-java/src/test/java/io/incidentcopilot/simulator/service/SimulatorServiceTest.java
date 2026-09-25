@@ -71,6 +71,20 @@ class SimulatorServiceTest {
     }
 
     @Test
+    void monitoringMetricsChangeWithScenarioStateAndRecovery() {
+        assertThat(simulator.metricErrorRate("checkout-api")).isZero();
+        assertThat(simulator.metricDiskFreePercent("reporting-worker")).isEqualTo(100.0);
+
+        simulator.startScenario("bad-deployment");
+        assertThat(simulator.metricErrorRate("checkout-api")).isEqualTo(0.16);
+        assertThat(simulator.metricLatencyMs("checkout-api")).isEqualTo(1800.0);
+
+        simulator.rollback("checkout-api", "2.8.0", "metrics-rollback");
+        assertThat(simulator.metricErrorRate("checkout-api")).isLessThan(0.02);
+        assertThat(simulator.metricLatencyMs("checkout-api")).isLessThan(700.0);
+    }
+
+    @Test
     void duplicateIdempotencyKeyReturnsTheOriginalExecutionWithoutAnotherMutation() {
         simulator.startScenario("traffic-surge");
 

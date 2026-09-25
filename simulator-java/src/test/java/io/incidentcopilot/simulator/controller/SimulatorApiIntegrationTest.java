@@ -64,6 +64,17 @@ class SimulatorApiIntegrationTest {
     }
 
     @Test
+    void exposesScenarioSignalsForPrometheusScraping() throws Exception {
+        start("bad-deployment");
+
+        mockMvc.perform(get("/actuator/prometheus"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("incident_service_error_ratio")))
+                .andExpect(content().string(containsString("service=\"checkout-api\"")))
+                .andExpect(content().string(containsString("0.16")));
+    }
+
+    @Test
     void actionResponseIsIdempotentAndIncludesResultingHealth() throws Exception {
         start("bad-deployment");
         String body = """

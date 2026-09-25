@@ -20,7 +20,12 @@ docker run --rm -p 8081:8081 incident-copilot-simulator
 ```
 
 The API is available at `http://localhost:8081`; Spring Boot health is exposed at
-`http://localhost:8081/actuator/health`.
+`http://localhost:8081/actuator/health`, and Prometheus metrics are exposed at
+`http://localhost:8081/actuator/prometheus`.
+
+Starting a scenario only changes simulated infrastructure state. Prometheus
+scrapes the resulting error, latency, CPU, disk, queue, and dependency metrics;
+Alertmanager is responsible for opening the Incident Copilot incident.
 
 ## Typical workflow
 

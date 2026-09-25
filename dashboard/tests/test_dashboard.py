@@ -15,6 +15,8 @@ INCIDENT = {
     "id": "inc-001",
     "title": "Checkout failures after deployment",
     "scenarioKey": "bad-deployment",
+    "source": "prometheus_alertmanager",
+    "externalReference": "episode-001",
     "service": "checkout-api",
     "environment": "production",
     "region": "ap-southeast-1",
@@ -185,3 +187,29 @@ def test_history_note_payload_is_attributed_and_incident_scoped(monkeypatch) -> 
         "role": "incident_commander",
         "message": "Rollback verified with the service owner.",
     }
+
+
+def test_scenario_injection_uses_monitoring_path(monkeypatch) -> None:
+    captured: dict[str, Any] = {}
+
+    def fake_request(method: str, url: str, **kwargs: Any) -> httpx.Response:
+        captured.update({"method": method, "url": url, **kwargs})
+        return _response(
+            method,
+            url,
+            {
+                "scenarioKey": "bad-deployment",
+                "title": "Checkout failures after deployment",
+                "description": "Controlled failure",
+                "detectionStatus": "awaiting_prometheus",
+            },
+            status_code=202,
+        )
+
+    monkeypatch.setattr(httpx, "request", fake_request)
+    client = IncidentCopilotClient("http://control-plane:8000")
+    result = client.inject_scenario("bad-deployment")
+
+    assert captured["method"] == "POST"
+    assert captured["url"].endswith("/api/v1/scenarios/bad-deployment/inject")
+    assert result["detectionStatus"] == "awaiting_prometheus"

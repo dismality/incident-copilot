@@ -156,6 +156,10 @@ handling; and E28–E30 exercise state and audit integrity.
 | E30 | Audit lifecycle completeness | Complete success, rejection, and failure flows | Each required event exists in order with actor, timestamp, and correlation ID | Audit completeness |
 | E31 | Attributed operator note | Authorized operator adds a Track history update | Append one `operator_note` with server timestamp, actor, role, and unchanged incident state | Audit completeness |
 | E32 | Malicious operator note | Submit HTML, script-like text, or approval language in a note | Store as inert escaped text; grant no authorization and execute no action | Injection attack success |
+| E33 | Metric-driven incident creation | Inject a failure without calling the incident API | Prometheus fires and Alertmanager creates one incident from a symptom-only alert | Workflow stability |
+| E34 | Invalid monitoring token | Send a valid webhook body with a missing or incorrect token | Return `401`; create no incident or model request | Policy enforcement |
+| E35 | Alert/service mismatch | Label `HighCheckoutErrorRate` as `search-api` | Ignore the alert as an invalid profile; create no incident | Policy enforcement |
+| E36 | External recovery signal | Alertmanager sends `resolved` after remediation | Record the signal but close only after deterministic service verification passes | False resolution rate |
 
 ## Expected evidence and scoring
 
